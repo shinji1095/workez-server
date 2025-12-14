@@ -1,0 +1,1552 @@
+openapi: 3.0.3
+info:
+  title: 椎茸収穫管理API（仮）
+  version: 0.1.0
+  description: |
+    椎茸の収穫数をITデバイスで自動集計しWebで可視化するためのAPI仕様書（仮）。
+    一次情報はプロジェクト内CSV（01_WEB機能一覧(機能一覧).csv）の「メソッド」「パス」等のみ。
+    CSVに無い入出力・認証等はTBDとして扱う。
+servers:
+  - url: http://127.0.0.1:8000
+    description: ローカル開発（仮）
+  - url: https://<render-service>.onrender.com
+    description: デプロイ環境（仮）
+tags:
+  - name: admin
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+  - name: analytics
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+  - name: defects
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+  - name: devices
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+  - name: harvest
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+  - name: prices
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+  - name: users
+    description: "TBD: CSVに入出力の定義が無いため要確認"
+paths:
+  /admin/users/{userId}:
+    put:
+      tags:
+        - admin
+      summary: 管理ユーザー権限変更
+      description: |
+        ページ: ユーザー一覧
+        権限（CSV記載）: 管理者≧
+      operationId: updateAdminUsers
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAdminUsersRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateAdminUsersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /analytics/harvest/monthly:
+    get:
+      tags:
+        - analytics
+      summary: 月間収穫量予想
+      description: |
+        ページ: 売上推移
+        権限（CSV記載）: 管理者≧
+      operationId: listAnalyticsHarvestMonthly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAnalyticsHarvestMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /analytics/revenue/monthly:
+    get:
+      tags:
+        - analytics
+      summary: 月間売上
+      description: |
+        ページ: 売上推移
+        権限（CSV記載）: 管理者≧
+      operationId: listAnalyticsRevenueMonthly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAnalyticsRevenueMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /analytics/revenue/yealy:
+    get:
+      tags:
+        - analytics
+      summary: 年間売り上げ
+      description: |
+        ページ: 売上推移
+        権限（CSV記載）: 管理者≧
+      operationId: listAnalyticsRevenueYealy
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAnalyticsRevenueYealyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /defects/amount/add:
+    post:
+      tags:
+        - defects
+      summary: 不良品数の送信
+      description: |
+        ページ: なし
+        説明（CSV記載）: デバイス→バックエンド デバイスを起動してから10分おきや1時間おきに不良品数をアップロード
+      operationId: createDefectsAmountAdd
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDefectsAmountAddRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDefectsAmountAddResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /defects/amount/monthly:
+    get:
+      tags:
+        - defects
+      summary: 月間不良品数
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listDefectsAmountMonthly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDefectsAmountMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /defects/amount/weekly:
+    get:
+      tags:
+        - defects
+      summary: 週間不良品数
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listDefectsAmountWeekly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDefectsAmountWeeklyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /defects/ratio/monthly:
+    get:
+      tags:
+        - defects
+      summary: 月間不良品割合
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listDefectsRatioMonthly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDefectsRatioMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /defects/ratio/weekly:
+    get:
+      tags:
+        - defects
+      summary: 週間不良品割合
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listDefectsRatioWeekly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDefectsRatioWeeklyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /devices:
+    get:
+      tags:
+        - devices
+      summary: デバイス一覧
+      description: |
+        ページ: デバイス一覧
+        権限（CSV記載）: 管理者≧
+      operationId: listDevices
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDevicesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - devices
+      summary: デバイス登録
+      description: |
+        ページ: デバイス登録
+        権限（CSV記載）: 管理者≧
+      operationId: createDevices
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDevicesRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDevicesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /devices/{deviceId}:
+    delete:
+      tags:
+        - devices
+      summary: デバイス削除
+      description: |
+        ページ: デバイス一覧
+        権限（CSV記載）: 管理者≧
+      operationId: deleteDevices
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteDevicesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /devices/{deviceId}/alerm:
+    get:
+      tags:
+        - devices
+      summary: 故障アラーム
+      description: |
+        ページ: デバイス一覧
+        権限（CSV記載）: 一般≧
+      operationId: retrieveDevicesAlerm
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveDevicesAlermResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - devices
+      summary: 故障アラーム送信
+      description: |
+        ページ: なし
+        説明（CSV記載）: デバイス→バックエンド
+      operationId: createDevicesAlerm
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDevicesAlermRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDevicesAlermResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /devices/{deviceId}/alerm/detail:
+    get:
+      tags:
+        - devices
+      summary: 故障アラーム（詳細）
+      description: |
+        ページ: デバイス一覧
+        権限（CSV記載）: 一般≧
+      operationId: retrieveDevicesAlermDetail
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveDevicesAlermDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /devices/{deviceId}/battery:
+    get:
+      tags:
+        - devices
+      summary: バッテリー監視
+      description: |
+        ページ: デバイス一覧
+        権限（CSV記載）: 一般≧
+      operationId: retrieveDevicesBattery
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveDevicesBatteryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - devices
+      summary: バッテリー状態送信
+      description: |
+        ページ: なし
+        説明（CSV記載）: デバイス→バックエンド
+      operationId: createDevicesBattery
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDevicesBatteryRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDevicesBatteryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/add:
+    post:
+      tags:
+        - harvest
+      summary: 収穫量の送信
+      description: |
+        ページ: なし
+        説明（CSV記載）: デバイス→バックエンド デバイスを起動してから10分おきや1時間おきに総収穫量をアップロード
+      operationId: createHarvestAmountAdd
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHarvestAmountAddRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateHarvestAmountAddResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/daily:
+    get:
+      tags:
+        - harvest
+      summary: 日間収穫量
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listHarvestAmountDaily
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListHarvestAmountDailyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/daily/category/{categoryId}:
+    get:
+      tags:
+        - harvest
+      summary: 仕分けサイズごとの 日間収穫量
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: retrieveHarvestAmountDailyCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountDailyCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - harvest
+      summary: 仕分けサイズごとの 日間収穫量の変更
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 管理者≧
+      operationId: partialUpdateHarvestAmountDailyCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUpdateHarvestAmountDailyCategoryRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartialUpdateHarvestAmountDailyCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/monthly:
+    get:
+      tags:
+        - harvest
+      summary: 月間収穫量
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listHarvestAmountMonthly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListHarvestAmountMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/monthly/category/{categoryId}:
+    get:
+      tags:
+        - harvest
+      summary: 仕分けサイズごとの 月間収穫量
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: retrieveHarvestAmountMonthlyCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountMonthlyCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - harvest
+      summary: 仕分けサイズごとの 月間収穫量の変更
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 管理者≧
+      operationId: partialUpdateHarvestAmountMonthlyCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUpdateHarvestAmountMonthlyCategoryRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartialUpdateHarvestAmountMonthlyCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/weekly:
+    get:
+      tags:
+        - harvest
+      summary: 週間収穫量
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: listHarvestAmountWeekly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListHarvestAmountWeeklyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/weekly/category/{categoryId}:
+    get:
+      tags:
+        - harvest
+      summary: 仕分けサイズごとの 週間収穫量
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 一般≧
+      operationId: retrieveHarvestAmountWeeklyCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountWeeklyCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - harvest
+      summary: 仕分けサイズごとの 週間収穫量の変更
+      description: |
+        ページ: 収穫量推移
+        権限（CSV記載）: 管理者≧
+      operationId: partialUpdateHarvestAmountWeeklyCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUpdateHarvestAmountWeeklyCategoryRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartialUpdateHarvestAmountWeeklyCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/target/daily:
+    put:
+      tags:
+        - harvest
+      summary: 1日目標収穫量設定
+      description: |
+        ページ: 目標設定
+        権限（CSV記載）: 管理者≧
+      operationId: updateHarvestTargetDaily
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHarvestTargetDailyRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateHarvestTargetDailyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/target/monthly:
+    put:
+      tags:
+        - harvest
+      summary: 月間目標収穫量設定
+      description: |
+        ページ: 目標設定
+        権限（CSV記載）: 管理者≧
+      operationId: updateHarvestTargetMonthly
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHarvestTargetMonthlyRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateHarvestTargetMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/target/weekly:
+    put:
+      tags:
+        - harvest
+      summary: 週間目標収穫量設定
+      description: |
+        ページ: 目標設定
+        権限（CSV記載）: 管理者≧
+      operationId: updateHarvestTargetWeekly
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHarvestTargetWeeklyRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateHarvestTargetWeeklyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /prices/category/{categoryId}:
+    post:
+      tags:
+        - prices
+      summary: 単価登録
+      description: |
+        ページ: 売上推移
+        権限（CSV記載）: 管理者≧
+      operationId: createPricesCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePricesCategoryRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePricesCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - prices
+      summary: 単価変更
+      description: |
+        ページ: 売上推移
+        権限（CSV記載）: 管理者≧
+      operationId: updatePricesCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePricesCategoryRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatePricesCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - prices
+      summary: 単価削除
+      description: |
+        ページ: 売上推移
+        権限（CSV記載）: 管理者≧
+      operationId: deletePricesCategory
+      parameters:
+        - $ref: '#/components/parameters/categoryId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletePricesCategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /prices/monthly:
+    get:
+      tags:
+        - prices
+      summary: 単価一覧（月間）
+      description: |
+        ページ: 売上推移
+      operationId: listPricesMonthly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPricesMonthlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /prices/yearly:
+    get:
+      tags:
+        - prices
+      summary: 単価一覧（年間）
+      description: |
+        ページ: 売上推移
+      operationId: listPricesYearly
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPricesYearlyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users:
+    get:
+      tags:
+        - users
+      summary: ユーザー一覧
+      description: |
+        ページ: ユーザー一覧
+        権限（CSV記載）: 管理者≧
+      operationId: listUsers
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - users
+      summary: ユーザー登録
+      description: |
+        ページ: ユーザー登録
+        権限（CSV記載）: 一般≧
+      operationId: createUsers
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUsersRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUsersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/{userId}:
+    patch:
+      tags:
+        - users
+      summary: ユーザー変更
+      description: |
+        ページ: プロフィール
+        権限（CSV記載）: 一般≧
+      operationId: partialUpdateUsers
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUpdateUsersRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartialUpdateUsersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - users
+      summary: ユーザー削除
+      description: |
+        ページ: ユーザー一覧
+        権限（CSV記載）: 管理者≧
+      operationId: deleteUsers
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUsersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  parameters:
+    categoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    deviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+  responses:
+    BadRequest:
+      description: 不正なリクエスト（TBD）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: 認証エラー（TBD）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: 権限エラー（TBD）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: リソース未存在（TBD）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: 競合（TBD）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: サーバーエラー（TBD）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorDetail:
+      type: object
+      required: [field, reason, value]
+      properties:
+        field:
+          type: string
+        reason:
+          type: string
+        value:
+          description: 任意型（ANY）。TBD。
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details, request_id]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              description: 詳細情報。空配列可。
+              items:
+                $ref: '#/components/schemas/ErrorDetail'
+            request_id:
+              type: string
+              description: リクエスト追跡ID。生成方式はTBD。
+    CreateDefectsAmountAddResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDefectsAmountAddRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDevicesResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDevicesRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDevicesAlermResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDevicesAlermRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDevicesBatteryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateDevicesBatteryRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateHarvestAmountAddResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateHarvestAmountAddRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreatePricesCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreatePricesCategoryRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateUsersResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    CreateUsersRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    DeleteDevicesResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    DeletePricesCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    DeleteUsersResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListAnalyticsHarvestMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListAnalyticsRevenueMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListAnalyticsRevenueYealyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListDefectsAmountMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListDefectsAmountWeeklyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListDefectsRatioMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListDefectsRatioWeeklyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListDevicesResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListHarvestAmountDailyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListHarvestAmountMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListHarvestAmountWeeklyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListPricesMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListPricesYearlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    ListUsersResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateHarvestAmountDailyCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateHarvestAmountDailyCategoryRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateHarvestAmountMonthlyCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateHarvestAmountMonthlyCategoryRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateHarvestAmountWeeklyCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateHarvestAmountWeeklyCategoryRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateUsersResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    PartialUpdateUsersRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    RetrieveDevicesAlermResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    RetrieveDevicesAlermDetailResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    RetrieveDevicesBatteryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    RetrieveHarvestAmountDailyCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    RetrieveHarvestAmountMonthlyCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    RetrieveHarvestAmountWeeklyCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateAdminUsersResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateAdminUsersRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateHarvestTargetDailyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateHarvestTargetDailyRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateHarvestTargetMonthlyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateHarvestTargetMonthlyRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateHarvestTargetWeeklyResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdateHarvestTargetWeeklyRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdatePricesCategoryResponse:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
+    UpdatePricesCategoryRequest:
+      type: object
+      additionalProperties: true
+      description: "TBD: CSVに入出力の定義が無いため要確認"
