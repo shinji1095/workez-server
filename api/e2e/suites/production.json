@@ -1,0 +1,23 @@
+{
+  "base_url": "${BASE_URL}",
+  "cases": [
+    {
+      "name": "list_users",
+      "method": "GET",
+      "path": "/users?page=1&page_size=1",
+      "headers": {
+        "X-API-KEY": "${ADMIN_API_KEY}"
+      },
+      "expect_status": 200
+    },
+    {
+      "name": "harvest_daily",
+      "method": "GET",
+      "path": "/harvest/amount/daily?page=1&page_size=1",
+      "headers": {
+        "X-API-KEY": "${USER_API_KEY}"
+      },
+      "expect_status": 200
+    }
+  ]
+}
