@@ -2,42 +2,47 @@ openapi: 3.0.3
 info:
   title: 椎茸収穫管理API（仮）
   version: 0.1.0
-  description: |
-    椎茸の収穫数をITデバイスで自動集計しWebで可視化するためのAPI仕様書（仮）。
+  description: '椎茸の収穫数をITデバイスで自動集計しWebで可視化するためのAPI仕様書（仮）。
+
     一次情報はプロジェクト内CSV（01_WEB機能一覧(機能一覧).csv）の「メソッド」「パス」等のみ。
+
     CSVに無い入出力・認証等はTBDとして扱う。
+
+    '
 servers:
-  - url: http://127.0.0.1:8000
-    description: ローカル開発（仮）
-  - url: https://<render-service>.onrender.com
-    description: デプロイ環境（仮）
+- url: http://127.0.0.1:8000
+  description: ローカル開発
+- url: https://<render-service>.onrender.com
+  description: デプロイ環境
 tags:
-  - name: admin
-    description: "TBD: CSVに入出力の定義が無いため要確認"
-  - name: analytics
-    description: "TBD: CSVに入出力の定義が無いため要確認"
-  - name: defects
-    description: "TBD: CSVに入出力の定義が無いため要確認"
-  - name: devices
-    description: "TBD: CSVに入出力の定義が無いため要確認"
-  - name: harvest
-    description: "TBD: CSVに入出力の定義が無いため要確認"
-  - name: prices
-    description: "TBD: CSVに入出力の定義が無いため要確認"
-  - name: users
-    description: "TBD: CSVに入出力の定義が無いため要確認"
+- name: admin
+  description: 管理ユーザーに関する機能群
+- name: analytics
+  description: 収穫数予想や売り上げ予想などの機能群
+- name: defects
+  description: 不良品に関する機能群
+- name: devices
+  description: デバイスに関する機能群
+- name: harvest
+  description: 収穫量を提供する機能群
+- name: prices
+  description: 単価に関する機能群
+- name: users
+  description: ユーザーに関する機能群
 paths:
   /admin/users/{userId}:
     put:
       tags:
-        - admin
+      - admin
       summary: 管理ユーザー権限変更
-      description: |
-        ページ: ユーザー一覧
+      description: 'ページ: ユーザー一覧
+
         権限（CSV記載）: 管理者≧
+
+        '
       operationId: updateAdminUsers
       parameters:
-        - $ref: '#/components/parameters/userId'
+      - $ref: '#/components/parameters/userId'
       requestBody:
         required: false
         content:
@@ -66,11 +71,15 @@ paths:
   /analytics/harvest/monthly:
     get:
       tags:
-        - analytics
+      - analytics
       summary: 月間収穫量予想
-      description: |
-        ページ: 売上推移
+      description: 'ページ: 売上推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 1か月の収穫量を予測
+
+        '
       operationId: listAnalyticsHarvestMonthly
       responses:
         '200':
@@ -91,14 +100,21 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /analytics/revenue/monthly:
     get:
       tags:
-        - analytics
+      - analytics
       summary: 月間売上
-      description: |
-        ページ: 売上推移
+      description: 'ページ: 売上推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 1か月の売り上げ推移
+
+        '
       operationId: listAnalyticsRevenueMonthly
       responses:
         '200':
@@ -119,14 +135,21 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /analytics/revenue/yealy:
     get:
       tags:
-        - analytics
+      - analytics
       summary: 年間売り上げ
-      description: |
-        ページ: 売上推移
+      description: 'ページ: 売上推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 年間の売り上げ推移
+
+        '
       operationId: listAnalyticsRevenueYealy
       responses:
         '200':
@@ -147,14 +170,15 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /defects/amount/add:
     post:
       tags:
-        - defects
+      - defects
       summary: 不良品数の送信
-      description: |
-        ページ: なし
-        説明（CSV記載）: デバイス→バックエンド デバイスを起動してから10分おきや1時間おきに不良品数をアップロード
+      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\nデバイスを起動してから10分おきや1時間おきに不良品数をアップロード\n"
       operationId: createDefectsAmountAdd
       requestBody:
         required: false
@@ -184,11 +208,13 @@ paths:
   /defects/amount/monthly:
     get:
       tags:
-        - defects
+      - defects
       summary: 月間不良品数
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: listDefectsAmountMonthly
       responses:
         '200':
@@ -209,14 +235,19 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /defects/amount/weekly:
     get:
       tags:
-        - defects
+      - defects
       summary: 週間不良品数
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: listDefectsAmountWeekly
       responses:
         '200':
@@ -237,14 +268,19 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /defects/ratio/monthly:
     get:
       tags:
-        - defects
+      - defects
       summary: 月間不良品割合
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: listDefectsRatioMonthly
       responses:
         '200':
@@ -265,14 +301,19 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /defects/ratio/weekly:
     get:
       tags:
-        - defects
+      - defects
       summary: 週間不良品割合
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: listDefectsRatioWeekly
       responses:
         '200':
@@ -293,14 +334,19 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /devices:
     get:
       tags:
-        - devices
+      - devices
       summary: デバイス一覧
-      description: |
-        ページ: デバイス一覧
+      description: 'ページ: デバイス一覧
+
         権限（CSV記載）: 管理者≧
+
+        '
       operationId: listDevices
       responses:
         '200':
@@ -321,13 +367,18 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
     post:
       tags:
-        - devices
+      - devices
       summary: デバイス登録
-      description: |
-        ページ: デバイス登録
+      description: 'ページ: デバイス登録
+
         権限（CSV記載）: 管理者≧
+
+        '
       operationId: createDevices
       requestBody:
         required: false
@@ -357,14 +408,16 @@ paths:
   /devices/{deviceId}:
     delete:
       tags:
-        - devices
+      - devices
       summary: デバイス削除
-      description: |
-        ページ: デバイス一覧
+      description: 'ページ: デバイス一覧
+
         権限（CSV記載）: 管理者≧
+
+        '
       operationId: deleteDevices
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/deviceId'
       responses:
         '200':
           description: 成功
@@ -387,14 +440,16 @@ paths:
   /devices/{deviceId}/alerm:
     get:
       tags:
-        - devices
+      - devices
       summary: 故障アラーム
-      description: |
-        ページ: デバイス一覧
+      description: 'ページ: デバイス一覧
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: retrieveDevicesAlerm
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/deviceId'
       responses:
         '200':
           description: 成功
@@ -416,14 +471,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - devices
+      - devices
       summary: 故障アラーム送信
-      description: |
-        ページ: なし
-        説明（CSV記載）: デバイス→バックエンド
+      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\n"
       operationId: createDevicesAlerm
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/deviceId'
       requestBody:
         required: false
         content:
@@ -452,14 +505,18 @@ paths:
   /devices/{deviceId}/alerm/detail:
     get:
       tags:
-        - devices
+      - devices
       summary: 故障アラーム（詳細）
-      description: |
-        ページ: デバイス一覧
+      description: 'ページ: デバイス一覧
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: retrieveDevicesAlermDetail
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
       responses:
         '200':
           description: 成功
@@ -482,14 +539,16 @@ paths:
   /devices/{deviceId}/battery:
     get:
       tags:
-        - devices
+      - devices
       summary: バッテリー監視
-      description: |
-        ページ: デバイス一覧
+      description: 'ページ: デバイス一覧
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: retrieveDevicesBattery
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/deviceId'
       responses:
         '200':
           description: 成功
@@ -511,14 +570,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - devices
+      - devices
       summary: バッテリー状態送信
-      description: |
-        ページ: なし
-        説明（CSV記載）: デバイス→バックエンド
+      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\n"
       operationId: createDevicesBattery
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+      - $ref: '#/components/parameters/deviceId'
       requestBody:
         required: false
         content:
@@ -547,11 +604,9 @@ paths:
   /harvest/amount/add:
     post:
       tags:
-        - harvest
+      - harvest
       summary: 収穫量の送信
-      description: |
-        ページ: なし
-        説明（CSV記載）: デバイス→バックエンド デバイスを起動してから10分おきや1時間おきに総収穫量をアップロード
+      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\nデバイスを起動してから10分おきや1時間おきに総収穫量をアップロード\n"
       operationId: createHarvestAmountAdd
       requestBody:
         required: false
@@ -581,11 +636,15 @@ paths:
   /harvest/amount/daily:
     get:
       tags:
-        - harvest
+      - harvest
       summary: 日間収穫量
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        説明: 日間収穫量の推移
+
+        '
       operationId: listHarvestAmountDaily
       responses:
         '200':
@@ -606,17 +665,26 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /harvest/amount/daily/category/{categoryId}:
     get:
       tags:
-        - harvest
+      - harvest
       summary: 仕分けサイズごとの 日間収穫量
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        説明: 仕分けサイズごとの日間収穫量の推移
+
+        '
       operationId: retrieveHarvestAmountDailyCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
       responses:
         '200':
           description: 成功
@@ -638,14 +706,22 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
-        - harvest
+      - harvest
       summary: 仕分けサイズごとの 日間収穫量の変更
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 仕分けサイズごとの日間収穫量の変更
+
+        クエリパラメータで日付を指定
+
+        クエリパラメータがなければ当日
+
+        '
       operationId: partialUpdateHarvestAmountDailyCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
       requestBody:
         required: false
         content:
@@ -674,11 +750,15 @@ paths:
   /harvest/amount/monthly:
     get:
       tags:
-        - harvest
+      - harvest
       summary: 月間収穫量
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        説明: 月間収穫量の推移
+
+        '
       operationId: listHarvestAmountMonthly
       responses:
         '200':
@@ -699,17 +779,26 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /harvest/amount/monthly/category/{categoryId}:
     get:
       tags:
-        - harvest
+      - harvest
       summary: 仕分けサイズごとの 月間収穫量
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        説明: 仕分けサイズごとの月間収穫量の推移
+
+        '
       operationId: retrieveHarvestAmountMonthlyCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
       responses:
         '200':
           description: 成功
@@ -731,14 +820,22 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
-        - harvest
+      - harvest
       summary: 仕分けサイズごとの 月間収穫量の変更
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 仕分けサイズごとの月間収穫量の推移
+
+        クエリパラメータで月を指定
+
+        クエリパラメータがなければ今月
+
+        '
       operationId: partialUpdateHarvestAmountMonthlyCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
       requestBody:
         required: false
         content:
@@ -767,11 +864,15 @@ paths:
   /harvest/amount/weekly:
     get:
       tags:
-        - harvest
+      - harvest
       summary: 週間収穫量
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        説明: 週間収穫量の推移
+
+        '
       operationId: listHarvestAmountWeekly
       responses:
         '200':
@@ -792,17 +893,26 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /harvest/amount/weekly/category/{categoryId}:
     get:
       tags:
-        - harvest
+      - harvest
       summary: 仕分けサイズごとの 週間収穫量
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 一般≧
+
+        説明: 仕分けサイズごとの週間収穫量の推移
+
+        '
       operationId: retrieveHarvestAmountWeeklyCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
       responses:
         '200':
           description: 成功
@@ -824,14 +934,22 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
-        - harvest
+      - harvest
       summary: 仕分けサイズごとの 週間収穫量の変更
-      description: |
-        ページ: 収穫量推移
+      description: 'ページ: 収穫量推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 仕分けサイズごとの週間収穫量の推移
+
+        クエリパラメータで週を指定
+
+        クエリパラメータがなければ今週
+
+        '
       operationId: partialUpdateHarvestAmountWeeklyCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
       requestBody:
         required: false
         content:
@@ -860,11 +978,15 @@ paths:
   /harvest/target/daily:
     put:
       tags:
-        - harvest
+      - harvest
       summary: 1日目標収穫量設定
-      description: |
-        ページ: 目標設定
+      description: 'ページ: 目標設定
+
         権限（CSV記載）: 管理者≧
+
+        説明: 1日あたりの目標収穫量を設定
+
+        '
       operationId: updateHarvestTargetDaily
       requestBody:
         required: false
@@ -894,11 +1016,15 @@ paths:
   /harvest/target/monthly:
     put:
       tags:
-        - harvest
+      - harvest
       summary: 月間目標収穫量設定
-      description: |
-        ページ: 目標設定
+      description: 'ページ: 目標設定
+
         権限（CSV記載）: 管理者≧
+
+        説明: 1か月あたりの目標収穫量を設定
+
+        '
       operationId: updateHarvestTargetMonthly
       requestBody:
         required: false
@@ -928,11 +1054,15 @@ paths:
   /harvest/target/weekly:
     put:
       tags:
-        - harvest
+      - harvest
       summary: 週間目標収穫量設定
-      description: |
-        ページ: 目標設定
+      description: 'ページ: 目標設定
+
         権限（CSV記載）: 管理者≧
+
+        説明: 1週間あたりの目標収穫量を設定
+
+        '
       operationId: updateHarvestTargetWeekly
       requestBody:
         required: false
@@ -962,14 +1092,18 @@ paths:
   /prices/category/{categoryId}:
     post:
       tags:
-        - prices
+      - prices
       summary: 単価登録
-      description: |
-        ページ: 売上推移
+      description: 'ページ: 売上推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: 今月の売り上げを登録
+
+        '
       operationId: createPricesCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
       requestBody:
         required: false
         content:
@@ -997,14 +1131,18 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - prices
+      - prices
       summary: 単価変更
-      description: |
-        ページ: 売上推移
+      description: 'ページ: 売上推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: クエリパラメータで月を指定
+
+        '
       operationId: updatePricesCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
       requestBody:
         required: false
         content:
@@ -1032,14 +1170,18 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - prices
+      - prices
       summary: 単価削除
-      description: |
-        ページ: 売上推移
+      description: 'ページ: 売上推移
+
         権限（CSV記載）: 管理者≧
+
+        説明: クエリパラメータで月を指定
+
+        '
       operationId: deletePricesCategory
       parameters:
-        - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/categoryId'
       responses:
         '200':
           description: 成功
@@ -1062,10 +1204,9 @@ paths:
   /prices/monthly:
     get:
       tags:
-        - prices
+      - prices
       summary: 単価一覧（月間）
-      description: |
-        ページ: 売上推移
+      description: "ページ: 売上推移\n権限（CSV記載）: \n説明: 月ごとの単価推移\n"
       operationId: listPricesMonthly
       responses:
         '200':
@@ -1086,13 +1227,15 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /prices/yearly:
     get:
       tags:
-        - prices
+      - prices
       summary: 単価一覧（年間）
-      description: |
-        ページ: 売上推移
+      description: "ページ: 売上推移\n権限（CSV記載）: \n説明: 年間の単価推移（月平均）\n"
       operationId: listPricesYearly
       responses:
         '200':
@@ -1113,14 +1256,19 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
   /users:
     get:
       tags:
-        - users
+      - users
       summary: ユーザー一覧
-      description: |
-        ページ: ユーザー一覧
+      description: 'ページ: ユーザー一覧
+
         権限（CSV記載）: 管理者≧
+
+        '
       operationId: listUsers
       responses:
         '200':
@@ -1141,13 +1289,18 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
     post:
       tags:
-        - users
+      - users
       summary: ユーザー登録
-      description: |
-        ページ: ユーザー登録
+      description: 'ページ: ユーザー登録
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: createUsers
       requestBody:
         required: false
@@ -1177,14 +1330,16 @@ paths:
   /users/{userId}:
     patch:
       tags:
-        - users
+      - users
       summary: ユーザー変更
-      description: |
-        ページ: プロフィール
+      description: 'ページ: プロフィール
+
         権限（CSV記載）: 一般≧
+
+        '
       operationId: partialUpdateUsers
       parameters:
-        - $ref: '#/components/parameters/userId'
+      - $ref: '#/components/parameters/userId'
       requestBody:
         required: false
         content:
@@ -1212,14 +1367,16 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - users
+      - users
       summary: ユーザー削除
-      description: |
-        ページ: ユーザー一覧
+      description: 'ページ: ユーザー一覧
+
         権限（CSV記載）: 管理者≧
+
+        '
       operationId: deleteUsers
       parameters:
-        - $ref: '#/components/parameters/userId'
+      - $ref: '#/components/parameters/userId'
       responses:
         '200':
           description: 成功
@@ -1247,21 +1404,40 @@ components:
       required: true
       schema:
         type: string
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     deviceId:
       name: deviceId
       in: path
       required: true
       schema:
         type: string
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     userId:
       name: userId
       in: path
       required: true
       schema:
         type: string
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
+    page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: ページ番号（1始まり）
+    page_size:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
+      description: 1ページあたりの件数
   responses:
     BadRequest:
       description: 不正なリクエスト（TBD）
@@ -1302,7 +1478,10 @@ components:
   schemas:
     ErrorDetail:
       type: object
-      required: [field, reason, value]
+      required:
+      - field
+      - reason
+      - value
       properties:
         field:
           type: string
@@ -1312,11 +1491,16 @@ components:
           description: 任意型（ANY）。TBD。
     ErrorResponse:
       type: object
-      required: [error]
+      required:
+      - error
       properties:
         error:
           type: object
-          required: [code, message, details, request_id]
+          required:
+          - code
+          - message
+          - details
+          - request_id
           properties:
             code:
               type: string
@@ -1331,222 +1515,1589 @@ components:
               type: string
               description: リクエスト追跡ID。生成方式はTBD。
     CreateDefectsAmountAddResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/DefectsRecord'
+        required:
+        - data
+      description: CreateDefectsAmountAddResponse（回答例を反映）
     CreateDefectsAmountAddRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     CreateDevicesResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/Device'
+        required:
+        - data
+      description: CreateDevicesResponse（回答例を反映）
     CreateDevicesRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     CreateDevicesAlermResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AlarmItem'
+        required:
+        - data
+      description: CreateDevicesAlermResponse（回答例を反映）
     CreateDevicesAlermRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     CreateDevicesBatteryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/BatteryLatest'
+        required:
+        - data
+      description: CreateDevicesBatteryResponse（回答例を反映）
     CreateDevicesBatteryRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     CreateHarvestAmountAddResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestRecord'
+        required:
+        - data
+      description: CreateHarvestAmountAddResponse（回答例を反映）
     CreateHarvestAmountAddRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     CreatePricesCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PriceRecord'
+        required:
+        - data
+      description: CreatePricesCategoryResponse（回答例を反映）
     CreatePricesCategoryRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     CreateUsersResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/User'
+        required:
+        - data
+      description: CreateUsersResponse（回答例を反映）
     CreateUsersRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     DeleteDevicesResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/DeleteDevicesData'
+        required:
+        - data
+      description: DeleteDevicesResponse（回答例を反映）
     DeletePricesCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/DeletePricesCategoryData'
+        required:
+        - data
+      description: DeletePricesCategoryResponse（回答例を反映）
     DeleteUsersResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/DeleteUsersData'
+        required:
+        - data
+      description: DeleteUsersResponse（回答例を反映）
     ListAnalyticsHarvestMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedForecastHarvestMonthly'
+        required:
+        - data
+      description: ListAnalyticsHarvestMonthlyResponse（回答例を反映）
     ListAnalyticsRevenueMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedRevenueMonthly'
+        required:
+        - data
+      description: ListAnalyticsRevenueMonthlyResponse（回答例を反映）
     ListAnalyticsRevenueYealyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedRevenueYearly'
+        required:
+        - data
+      description: ListAnalyticsRevenueYealyResponse（回答例を反映）
     ListDefectsAmountMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedDefectsAggregateMonthly'
+        required:
+        - data
+      description: ListDefectsAmountMonthlyResponse（回答例を反映）
     ListDefectsAmountWeeklyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedDefectsAggregateWeekly'
+        required:
+        - data
+      description: ListDefectsAmountWeeklyResponse（回答例を反映）
     ListDefectsRatioMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedDefectsRatioMonthly'
+        required:
+        - data
+      description: ListDefectsRatioMonthlyResponse（回答例を反映）
     ListDefectsRatioWeeklyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedDefectsRatioWeekly'
+        required:
+        - data
+      description: ListDefectsRatioWeeklyResponse（回答例を反映）
     ListDevicesResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedDevices'
+        required:
+        - data
+      description: ListDevicesResponse（回答例を反映）
     ListHarvestAmountDailyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateDaily'
+        required:
+        - data
+      description: ListHarvestAmountDailyResponse（回答例を反映）
     ListHarvestAmountMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateMonthly'
+        required:
+        - data
+      description: ListHarvestAmountMonthlyResponse（回答例を反映）
     ListHarvestAmountWeeklyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateWeekly'
+        required:
+        - data
+      description: ListHarvestAmountWeeklyResponse（回答例を反映）
     ListPricesMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedPriceMonthly'
+        required:
+        - data
+      description: ListPricesMonthlyResponse（回答例を反映）
     ListPricesYearlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedPriceYearly'
+        required:
+        - data
+      description: ListPricesYearlyResponse（回答例を反映）
     ListUsersResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedUsers'
+        required:
+        - data
+      description: ListUsersResponse（回答例を反映）
     PartialUpdateHarvestAmountDailyCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestAggregateDailyByCategoryItem'
+        required:
+        - data
+      description: PartialUpdateHarvestAmountDailyCategoryResponse（回答例を反映）
     PartialUpdateHarvestAmountDailyCategoryRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     PartialUpdateHarvestAmountMonthlyCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestAggregateMonthlyByCategoryItem'
+        required:
+        - data
+      description: PartialUpdateHarvestAmountMonthlyCategoryResponse（回答例を反映）
     PartialUpdateHarvestAmountMonthlyCategoryRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     PartialUpdateHarvestAmountWeeklyCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestAggregateWeeklyByCategoryItem'
+        required:
+        - data
+      description: PartialUpdateHarvestAmountWeeklyCategoryResponse（回答例を反映）
     PartialUpdateHarvestAmountWeeklyCategoryRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     PartialUpdateUsersResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/User'
+        required:
+        - data
+      description: PartialUpdateUsersResponse（回答例を反映）
     PartialUpdateUsersRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     RetrieveDevicesAlermResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AlarmStatus'
+        required:
+        - data
+      description: RetrieveDevicesAlermResponse（回答例を反映）
     RetrieveDevicesAlermDetailResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedAlarmItems'
+        required:
+        - data
+      description: RetrieveDevicesAlermDetailResponse（回答例を反映）
     RetrieveDevicesBatteryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/BatteryLatest'
+        required:
+        - data
+      description: RetrieveDevicesBatteryResponse（回答例を反映）
     RetrieveHarvestAmountDailyCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateDailyByCategory'
+        required:
+        - data
+      description: RetrieveHarvestAmountDailyCategoryResponse（回答例を反映）
     RetrieveHarvestAmountMonthlyCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateMonthlyByCategory'
+        required:
+        - data
+      description: RetrieveHarvestAmountMonthlyCategoryResponse（回答例を反映）
     RetrieveHarvestAmountWeeklyCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateWeeklyByCategory'
+        required:
+        - data
+      description: RetrieveHarvestAmountWeeklyCategoryResponse（回答例を反映）
     UpdateAdminUsersResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/User'
+        required:
+        - data
+      description: UpdateAdminUsersResponse（回答例を反映）
     UpdateAdminUsersRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     UpdateHarvestTargetDailyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestTarget'
+        required:
+        - data
+      description: UpdateHarvestTargetDailyResponse（回答例を反映）
     UpdateHarvestTargetDailyRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     UpdateHarvestTargetMonthlyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestTarget'
+        required:
+        - data
+      description: UpdateHarvestTargetMonthlyResponse（回答例を反映）
     UpdateHarvestTargetMonthlyRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     UpdateHarvestTargetWeeklyResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/HarvestTarget'
+        required:
+        - data
+      description: UpdateHarvestTargetWeeklyResponse（回答例を反映）
     UpdateHarvestTargetWeeklyRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
     UpdatePricesCategoryResponse:
-      type: object
-      additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PriceRecord'
+        required:
+        - data
+      description: UpdatePricesCategoryResponse（回答例を反映）
     UpdatePricesCategoryRequest:
       type: object
       additionalProperties: true
-      description: "TBD: CSVに入出力の定義が無いため要確認"
+      description: 'TBD: CSVに入出力の定義が無いため要確認'
+    SuccessEnvelopeBase:
+      type: object
+      description: 成功レスポンスの共通ラッパー
+      properties:
+        status:
+          type: string
+          description: 処理結果
+          example: success
+        request_id:
+          type: string
+          description: リクエスト識別子（サーバー側で採番する場合）
+          example: req_123456
+        data: {}
+      required:
+      - status
+      - data
+      additionalProperties: false
+    User:
+      type: object
+      description: ユーザー
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: 山田太郎
+        role:
+          type: string
+          enum:
+          - admin
+          - viewer
+          example: viewer
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - id
+      - email
+      - name
+      - role
+      - is_active
+      - created_at
+      - updated_at
+      additionalProperties: false
+    Device:
+      type: object
+      description: デバイス
+      properties:
+        id:
+          type: string
+          example: DEV001
+        name:
+          type: string
+          example: 収穫カウンタ1
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - maintenance
+          example: active
+        created_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - id
+      - name
+      - status
+      - created_at
+      - updated_at
+      additionalProperties: false
+    BatteryLatest:
+      type: object
+      description: バッテリー最新状態
+      properties:
+        device_id:
+          type: string
+          example: DEV001
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 80
+        voltage_mv:
+          type: integer
+          example: 4100
+          nullable: true
+        is_charging:
+          type: boolean
+          example: false
+        updated_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - device_id
+      - percent
+      - is_charging
+      - updated_at
+      additionalProperties: false
+    AlarmItem:
+      type: object
+      description: アラーム（1件）
+      properties:
+        alarm_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        type:
+          type: string
+          enum:
+          - battery_low
+          - sensor_failure
+          - network_error
+          example: battery_low
+        message:
+          type: string
+          example: バッテリー残量が低下しました
+        status:
+          type: string
+          enum:
+          - open
+          - acknowledged
+          - closed
+          example: open
+        occurred_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - alarm_id
+      - type
+      - message
+      - status
+      - occurred_at
+      additionalProperties: false
+    AlarmStatus:
+      type: object
+      description: アラームの最新状態
+      properties:
+        device_id:
+          type: string
+          example: DEV001
+        has_active_alarm:
+          type: boolean
+          example: true
+        severity:
+          type: string
+          enum:
+          - info
+          - warning
+          - critical
+          nullable: true
+          example: warning
+        last_alarm_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2025-12-15T12:34:56+09:00'
+        active_alarms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlarmItem'
+          nullable: true
+      required:
+      - device_id
+      - has_active_alarm
+      additionalProperties: false
+    HarvestRecord:
+      type: object
+      description: 収穫記録（1件）
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        device_id:
+          type: string
+          example: DEV001
+        category_id:
+          type: string
+          nullable: true
+          example: S
+        count:
+          type: integer
+          minimum: 1
+          example: 12
+        occurred_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+        created_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - id
+      - device_id
+      - count
+      - occurred_at
+      - created_at
+      additionalProperties: false
+    DefectsRecord:
+      type: object
+      description: 不良品記録（1件）
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        device_id:
+          type: string
+          example: DEV001
+        category_id:
+          type: string
+          nullable: true
+          example: S
+        count:
+          type: integer
+          minimum: 1
+          example: 2
+        occurred_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+        created_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - id
+      - device_id
+      - count
+      - occurred_at
+      - created_at
+      additionalProperties: false
+    HarvestAggregateDailyItem:
+      type: object
+      description: 日別収穫集計（1日）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          example: '2025-12-15'
+        total_count:
+          type: integer
+          minimum: 0
+          example: 4000
+      required:
+      - period
+      - total_count
+      additionalProperties: false
+    HarvestAggregateWeeklyItem:
+      type: object
+      description: 週別収穫集計（1週）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-W\d{2}$
+          example: 2025-W50
+        total_count:
+          type: integer
+          minimum: 0
+          example: 28000
+      required:
+      - period
+      - total_count
+      additionalProperties: false
+    HarvestAggregateMonthlyItem:
+      type: object
+      description: 月別収穫集計（1月）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        total_count:
+          type: integer
+          minimum: 0
+          example: 120000
+      required:
+      - period
+      - total_count
+      additionalProperties: false
+    HarvestAggregateDailyByCategoryItem:
+      type: object
+      description: 日別×カテゴリ収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          example: '2025-12-15'
+        category_id:
+          type: string
+          example: S
+        category_name:
+          type: string
+          nullable: true
+          example: Sサイズ
+        total_count:
+          type: integer
+          minimum: 0
+          example: 1200
+      required:
+      - period
+      - category_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateWeeklyByCategoryItem:
+      type: object
+      description: 週別×カテゴリ収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-W\d{2}$
+          example: 2025-W50
+        category_id:
+          type: string
+          example: S
+        category_name:
+          type: string
+          nullable: true
+          example: Sサイズ
+        total_count:
+          type: integer
+          minimum: 0
+          example: 8000
+      required:
+      - period
+      - category_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateMonthlyByCategoryItem:
+      type: object
+      description: 月別×カテゴリ収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        category_id:
+          type: string
+          example: S
+        category_name:
+          type: string
+          nullable: true
+          example: Sサイズ
+        total_count:
+          type: integer
+          minimum: 0
+          example: 35000
+      required:
+      - period
+      - category_id
+      - total_count
+      additionalProperties: false
+    HarvestTarget:
+      type: object
+      description: 目標収穫量設定
+      properties:
+        target_type:
+          type: string
+          enum:
+          - daily
+          - weekly
+          - monthly
+          example: daily
+        target_count:
+          type: integer
+          minimum: 0
+          example: 4000
+        effective_from:
+          type: string
+          format: date
+          nullable: true
+          example: '2025-12-15'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - target_type
+      - target_count
+      - updated_at
+      additionalProperties: false
+    DefectsAggregateMonthlyItem:
+      type: object
+      description: 月別不良品数（1月）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        total_defects:
+          type: integer
+          minimum: 0
+          example: 120
+      required:
+      - period
+      - total_defects
+      additionalProperties: false
+    DefectsAggregateWeeklyItem:
+      type: object
+      description: 週別不良品数（1週）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-W\d{2}$
+          example: 2025-W50
+        total_defects:
+          type: integer
+          minimum: 0
+          example: 30
+      required:
+      - period
+      - total_defects
+      additionalProperties: false
+    DefectsRatioMonthlyItem:
+      type: object
+      description: 月別不良品割合（1月）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        defects_ratio_percent:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 2.5
+        total_defects:
+          type: integer
+          minimum: 0
+          example: 120
+        total_harvest:
+          type: integer
+          minimum: 0
+          example: 4800
+      required:
+      - period
+      - defects_ratio_percent
+      - total_defects
+      - total_harvest
+      additionalProperties: false
+    DefectsRatioWeeklyItem:
+      type: object
+      description: 週別不良品割合（1週）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-W\d{2}$
+          example: 2025-W50
+        defects_ratio_percent:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 1.1
+        total_defects:
+          type: integer
+          minimum: 0
+          example: 30
+        total_harvest:
+          type: integer
+          minimum: 0
+          example: 2700
+      required:
+      - period
+      - defects_ratio_percent
+      - total_defects
+      - total_harvest
+      additionalProperties: false
+    PriceRecord:
+      type: object
+      description: 単価（カテゴリ別）
+      properties:
+        category_id:
+          type: string
+          example: S
+        unit_price_yen:
+          type: integer
+          minimum: 0
+          example: 120
+        effective_from:
+          type: string
+          format: date
+          nullable: true
+          example: '2025-12-01'
+        effective_to:
+          type: string
+          format: date
+          nullable: true
+          example: '2025-12-31'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2025-12-15T12:34:56+09:00'
+      required:
+      - category_id
+      - unit_price_yen
+      - updated_at
+      additionalProperties: false
+    PriceMonthlyItem:
+      type: object
+      description: 月間単価（表示用）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        category_id:
+          type: string
+          example: S
+        unit_price_yen:
+          type: integer
+          minimum: 0
+          example: 120
+      required:
+      - period
+      - category_id
+      - unit_price_yen
+      additionalProperties: false
+    PriceYearlyItem:
+      type: object
+      description: 年間単価（表示用）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}$
+          example: '2025'
+        category_id:
+          type: string
+          example: S
+        unit_price_yen:
+          type: integer
+          minimum: 0
+          example: 120
+      required:
+      - period
+      - category_id
+      - unit_price_yen
+      additionalProperties: false
+    ForecastHarvestMonthlyItem:
+      type: object
+      description: 月間収穫量予測（1月）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2026-01
+        predicted_count:
+          type: integer
+          minimum: 0
+          example: 110000
+        ci_low_count:
+          type: integer
+          minimum: 0
+          nullable: true
+          example: 100000
+        ci_high_count:
+          type: integer
+          minimum: 0
+          nullable: true
+          example: 120000
+        model_version:
+          type: string
+          nullable: true
+          example: v1.0.0
+      required:
+      - period
+      - predicted_count
+      additionalProperties: false
+    RevenueMonthlyItem:
+      type: object
+      description: 月間売上（1月）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        revenue_yen:
+          type: integer
+          minimum: 0
+          example: 1200000
+      required:
+      - period
+      - revenue_yen
+      additionalProperties: false
+    RevenueYearlyItem:
+      type: object
+      description: 年間売上（1年）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}$
+          example: '2025'
+        revenue_yen:
+          type: integer
+          minimum: 0
+          example: 14000000
+      required:
+      - period
+      - revenue_yen
+      additionalProperties: false
+    PaginatedUsers:
+      type: object
+      description: ユーザー一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedDevices:
+      type: object
+      description: デバイス一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedAlarmItems:
+      type: object
+      description: アラーム一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlarmItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedForecastHarvestMonthly:
+      type: object
+      description: 月間収穫量予測一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastHarvestMonthlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedRevenueMonthly:
+      type: object
+      description: 月間売上一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevenueMonthlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedRevenueYearly:
+      type: object
+      description: 年間売上一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevenueYearlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedDefectsAggregateMonthly:
+      type: object
+      description: 月別不良品数一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefectsAggregateMonthlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedDefectsAggregateWeekly:
+      type: object
+      description: 週別不良品数一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefectsAggregateWeeklyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedDefectsRatioMonthly:
+      type: object
+      description: 月別不良品割合一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefectsRatioMonthlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedDefectsRatioWeekly:
+      type: object
+      description: 週別不良品割合一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefectsRatioWeeklyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateDaily:
+      type: object
+      description: 日別収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateDailyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateWeekly:
+      type: object
+      description: 週別収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateWeeklyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateMonthly:
+      type: object
+      description: 月別収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateMonthlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateDailyByCategory:
+      type: object
+      description: 日別×カテゴリ収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateDailyByCategoryItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateWeeklyByCategory:
+      type: object
+      description: 週別×カテゴリ収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateWeeklyByCategoryItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateMonthlyByCategory:
+      type: object
+      description: 月別×カテゴリ収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateMonthlyByCategoryItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedPriceMonthly:
+      type: object
+      description: 月間単価一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceMonthlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedPriceYearly:
+      type: object
+      description: 年間単価一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceYearlyItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    DeleteDevicesData:
+      type: object
+      description: デバイス削除結果
+      properties:
+        deleted:
+          type: boolean
+          example: true
+        device_id:
+          type: string
+          example: DEV001
+      required:
+      - deleted
+      - device_id
+      additionalProperties: false
+    DeleteUsersData:
+      type: object
+      description: ユーザー削除結果
+      properties:
+        deleted:
+          type: boolean
+          example: true
+        user_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      required:
+      - deleted
+      - user_id
+      additionalProperties: false
+    DeletePricesCategoryData:
+      type: object
+      description: 単価カテゴリ削除結果
+      properties:
+        deleted:
+          type: boolean
+          example: true
+        category_id:
+          type: string
+          example: S
+      required:
+      - deleted
+      - category_id
+      additionalProperties: false
