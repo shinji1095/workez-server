@@ -1,0 +1,91 @@
+{
+  "base_url": "${BASE_URL}",
+  "cases": [
+    {
+      "name": "create_user",
+      "method": "POST",
+      "path": "/users",
+      "headers": {
+        "X-API-KEY": "${USER_API_KEY}"
+      },
+      "payload": "e2e/payloads/create_user.json",
+      "expect_status": 201
+    },
+    {
+      "name": "list_users",
+      "method": "GET",
+      "path": "/users?page=1&page_size=10",
+      "headers": {
+        "X-API-KEY": "${ADMIN_API_KEY}"
+      },
+      "expect_status": 200
+    },
+    {
+      "name": "create_device",
+      "method": "POST",
+      "path": "/devices",
+      "headers": {
+        "X-API-KEY": "${ADMIN_API_KEY}"
+      },
+      "payload": "e2e/payloads/create_device.json",
+      "expect_status": 201
+    },
+    {
+      "name": "create_price",
+      "method": "POST",
+      "path": "/prices/category/C1",
+      "headers": {
+        "X-API-KEY": "${ADMIN_API_KEY}"
+      },
+      "payload": "e2e/payloads/create_price.json",
+      "expect_status": 201
+    },
+    {
+      "name": "harvest_add",
+      "method": "POST",
+      "path": "/harvest/amount/add",
+      "headers": {
+        "X-API-KEY": "${DEVICE_API_KEY}"
+      },
+      "payload": "e2e/payloads/harvest_add.json",
+      "expect_status": 201
+    },
+    {
+      "name": "harvest_daily",
+      "method": "GET",
+      "path": "/harvest/amount/daily?page=1&page_size=10",
+      "headers": {
+        "X-API-KEY": "${USER_API_KEY}"
+      },
+      "expect_status": 200
+    },
+    {
+      "name": "defects_add",
+      "method": "POST",
+      "path": "/defects/amount/add",
+      "headers": {
+        "X-API-KEY": "${DEVICE_API_KEY}"
+      },
+      "payload": "e2e/payloads/defects_add.json",
+      "expect_status": 201
+    },
+    {
+      "name": "defects_weekly",
+      "method": "GET",
+      "path": "/defects/amount/weekly?page=1&page_size=10",
+      "headers": {
+        "X-API-KEY": "${USER_API_KEY}"
+      },
+      "expect_status": 200
+    },
+    {
+      "name": "revenue_monthly",
+      "method": "GET",
+      "path": "/analytics/revenue/monthly?page=1&page_size=10",
+      "headers": {
+        "X-API-KEY": "${ADMIN_API_KEY}"
+      },
+      "expect_status": 200
+    }
+  ]
+}

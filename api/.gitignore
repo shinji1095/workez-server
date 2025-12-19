@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Django
+db.sqlite3
+staticfiles/
+
+# Env files (DO NOT COMMIT)
+.env
+.env.local
+.env.test
+
+# IDE
+.vscode/
+.idea/

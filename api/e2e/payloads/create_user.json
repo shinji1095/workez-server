@@ -1,0 +1,6 @@
+{
+  "email": "test_user@example.com",
+  "name": "Test User",
+  "role": "viewer",
+  "is_active": true
+}
