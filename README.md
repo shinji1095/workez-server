@@ -75,7 +75,7 @@ chmod +x ./generate_env.sh
 dockerコンテナを起動する．
 
 ```shell
-docker compose up -d -f docker-compose.yml -f docker-compose.local.yml --build 
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
 
 ## 1.3 実行確認

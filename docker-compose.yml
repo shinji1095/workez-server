@@ -46,14 +46,19 @@ services:
         condition: service_healthy
     expose:
       - "8000"
-    command: >
-      sh -c "
-        python manage.py migrate &&
+    command:
+      - sh
+      - -c
+      - >
+        set -e;
+        python manage.py migrate;
         gunicorn config.wsgi:application
-          --bind 0.0.0.0:8000
-          --workers ${GUNICORN_WORKERS:-3}
-          --timeout ${GUNICORN_TIMEOUT:-60}
-      "
+        --bind 0.0.0.0:8000
+        --workers ${GUNICORN_WORKERS:-3}
+        --timeout ${GUNICORN_TIMEOUT:-60}
+        --access-logfile -
+        --error-logfile -
+        --log-level info
     networks:
       - app-net
 
@@ -83,7 +88,7 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ./deploy/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./deploy/mosquitto:/mosquitto/config
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
     networks:

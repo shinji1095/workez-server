@@ -2,6 +2,7 @@ from .base import *  # noqa
 import environ  # type: ignore
 
 DEBUG = False
+SECURE_SSL_REDIRECT = False
 
 # Production DB must be provided (Render etc.)
 if not os.getenv("DATABASE_URL"):
