@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      args:
+        REQUIREMENTS_FILE: local.txt
+    env_file:
+      - ./.env.local
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+    volumes:
+      - ./api:/app
+    command: >
+      sh -c "
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
