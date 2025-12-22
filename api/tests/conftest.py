@@ -1,29 +1,35 @@
-import pytest
-from rest_framework.test import APIClient  # type: ignore
-from django.conf import settings  # type: ignore
+import uuid
 
-@pytest.fixture(autouse=True)
-def _set_api_keys(settings):  # noqa: D401
-    settings.ADMIN_API_KEY = "admin-test-key"
-    settings.USER_API_KEY = "user-test-key"
-    settings.DEVICE_API_KEY = "device-test-key"
-    return settings
+import pytest
+from rest_framework.test import APIClient
+
+from apps.common.jwt import issue_jwt
+
 
 @pytest.fixture
 def api_client():
     return APIClient()
 
-@pytest.fixture
-def admin_client(api_client):
-    api_client.credentials(HTTP_X_API_KEY="admin-test-key")
-    return api_client
 
 @pytest.fixture
-def user_client(api_client):
-    api_client.credentials(HTTP_X_API_KEY="user-test-key")
-    return api_client
+def admin_client():
+    client = APIClient()
+    token = issue_jwt(sub="admin-1", role="admin")
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
 
 @pytest.fixture
-def device_client(api_client):
-    api_client.credentials(HTTP_X_API_KEY="device-test-key")
-    return api_client
+def user_client():
+    client = APIClient()
+    token = issue_jwt(sub="user-1", role="viewer")
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
+
+@pytest.fixture
+def device_client():
+    client = APIClient()
+    token = issue_jwt(sub="device-1", role="device")
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client

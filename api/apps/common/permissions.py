@@ -4,7 +4,8 @@ from rest_framework.exceptions import NotAuthenticated, PermissionDenied  # type
 
 ROLE_ORDER = {
     "device": 1,
-    "user": 2,   # corresponds to viewer in OpenAPI User.role
+    "viewer": 2,
+    "user": 2,   # backward-compatible alias
     "admin": 3,
 }
 

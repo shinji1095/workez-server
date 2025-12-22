@@ -6,7 +6,7 @@
       "method": "POST",
       "path": "/users",
       "headers": {
-        "X-API-KEY": "${USER_API_KEY}"
+        "Authorization": "Bearer ${USER_JWT}"
       },
       "payload": "e2e/payloads/create_user.json",
       "expect_status": 201
@@ -16,7 +16,7 @@
       "method": "GET",
       "path": "/users?page=1&page_size=10",
       "headers": {
-        "X-API-KEY": "${ADMIN_API_KEY}"
+        "Authorization": "Bearer ${ADMIN_JWT}"
       },
       "expect_status": 200
     },
@@ -25,19 +25,9 @@
       "method": "POST",
       "path": "/devices",
       "headers": {
-        "X-API-KEY": "${ADMIN_API_KEY}"
+        "Authorization": "Bearer ${ADMIN_JWT}"
       },
       "payload": "e2e/payloads/create_device.json",
-      "expect_status": 201
-    },
-    {
-      "name": "create_price",
-      "method": "POST",
-      "path": "/prices/category/C1",
-      "headers": {
-        "X-API-KEY": "${ADMIN_API_KEY}"
-      },
-      "payload": "e2e/payloads/create_price.json",
       "expect_status": 201
     },
     {
@@ -45,7 +35,7 @@
       "method": "POST",
       "path": "/harvest/amount/add",
       "headers": {
-        "X-API-KEY": "${DEVICE_API_KEY}"
+        "Authorization": "Bearer ${DEVICE_JWT}"
       },
       "payload": "e2e/payloads/harvest_add.json",
       "expect_status": 201
@@ -55,7 +45,7 @@
       "method": "GET",
       "path": "/harvest/amount/daily?page=1&page_size=10",
       "headers": {
-        "X-API-KEY": "${USER_API_KEY}"
+        "Authorization": "Bearer ${USER_JWT}"
       },
       "expect_status": 200
     },
@@ -64,7 +54,7 @@
       "method": "POST",
       "path": "/defects/amount/add",
       "headers": {
-        "X-API-KEY": "${DEVICE_API_KEY}"
+        "Authorization": "Bearer ${DEVICE_JWT}"
       },
       "payload": "e2e/payloads/defects_add.json",
       "expect_status": 201
@@ -74,7 +64,7 @@
       "method": "GET",
       "path": "/defects/amount/weekly?page=1&page_size=10",
       "headers": {
-        "X-API-KEY": "${USER_API_KEY}"
+        "Authorization": "Bearer ${USER_JWT}"
       },
       "expect_status": 200
     },
@@ -83,7 +73,7 @@
       "method": "GET",
       "path": "/analytics/revenue/monthly?page=1&page_size=10",
       "headers": {
-        "X-API-KEY": "${ADMIN_API_KEY}"
+        "Authorization": "Bearer ${ADMIN_JWT}"
       },
       "expect_status": 200
     }

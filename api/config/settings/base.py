@@ -80,18 +80,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # DRF base config: envelope & auth
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "apps.common.auth.ApiKeyAuthentication",
+        "apps.common.auth.JwtAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ),
     "EXCEPTION_HANDLER": "apps.common.exceptions.exception_handler",
 }
 
-# API Keys (role mapping)
-ADMIN_API_KEY = env("ADMIN_API_KEY", default="")
-USER_API_KEY = env("USER_API_KEY", default="")
-DEVICE_API_KEY = env("DEVICE_API_KEY", default="")
+# JWT settings (stateless principal)
+JWT_SIGNING_KEY = env("JWT_SIGNING_KEY", default=SECRET_KEY)
+JWT_ALGORITHM = env("JWT_ALGORITHM", default="HS256")
+JWT_ACCESS_TOKEN_LIFETIME_SECONDS = env.int("JWT_ACCESS_TOKEN_LIFETIME_SECONDS", default=3600)
 
 # Pagination defaults (OpenAPI parameters page/page_size)
 DEFAULT_PAGE_SIZE = env.int("DEFAULT_PAGE_SIZE", default=50)

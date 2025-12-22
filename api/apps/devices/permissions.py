@@ -6,7 +6,7 @@ from apps.common.permissions import ROLE_ORDER, _role_value  # type: ignore
 class RoleDeviceOrAdmin(BasePermission):
     """CSVで権限未記載のデバイス→バックエンド送信系に暫定適用。
 
-    - device role (DEVICE_API_KEY) or admin role
+    - device role or admin role
     - NOTE: CSV権限が空のため、READMEに明記して見直し前提。
     """
 

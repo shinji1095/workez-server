@@ -5,4 +5,8 @@ class RequestIdMiddleware(MiddlewareMixin):
     """Attach a request_id to each request for traceability."""
 
     def process_request(self, request):
-        request.request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        rid = request.headers.get("X-Request-ID")
+        if rid:
+            request.request_id = str(rid)
+            return
+        request.request_id = f"req_{uuid.uuid4()}"

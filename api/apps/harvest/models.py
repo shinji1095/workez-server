@@ -4,6 +4,7 @@ from django.db import models  # type: ignore
 class HarvestRecord(models.Model):
     """Raw harvest events uploaded from devices."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event_id = models.UUIDField(unique=True, null=True, blank=True)
     device_id = models.CharField(max_length=64)
     category_id = models.CharField(max_length=32, null=True, blank=True)
     category_name = models.CharField(max_length=255, null=True, blank=True)

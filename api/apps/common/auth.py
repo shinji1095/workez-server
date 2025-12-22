@@ -1,50 +1,71 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional, Tuple
+
+import jwt
 from django.conf import settings  # type: ignore
 from rest_framework.authentication import BaseAuthentication  # type: ignore
-from rest_framework.request import Request  # type: ignore
+from rest_framework.exceptions import AuthenticationFailed  # type: ignore
+
+DEFAULT_ALG = "HS256"
+
 
 @dataclass(frozen=True)
-class ApiKeyUser:
-    """Lightweight authenticated principal used for API-key based auth."""
-    role: str  # admin | user | device
+class JwtUser:
+    sub: str
+    role: str
 
     @property
     def is_authenticated(self) -> bool:
         return True
 
-class ApiKeyAuthentication(BaseAuthentication):
-    """Authenticate with a simple API key.
 
-    Supported headers:
-    - X-API-KEY: <key>
-    - Authorization: Bearer <key>
+def issue_jwt(*, sub: str, role: str, lifetime_seconds: int = 3600) -> str:
+    """Issue a JWT (mainly for tests)."""
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": sub,
+        "role": role,
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(seconds=lifetime_seconds)).timestamp()),
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm=DEFAULT_ALG)
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+    return token
 
-    Keys are configured by environment variables:
-    - ADMIN_API_KEY
-    - USER_API_KEY
-    - DEVICE_API_KEY
 
-    NOTE: This auth scheme is not defined in openapi.yaml yet.
-    It is introduced to enforce CSV role constraints (一般≧/管理者≧).
-    """
+class JwtAuthentication(BaseAuthentication):
+    """Simple Bearer JWT authentication."""
 
-    def authenticate(self, request: Request) -> Optional[Tuple[ApiKeyUser, str]]:
-        key = request.headers.get("X-API-KEY")
-        if not key:
-            auth = request.headers.get("Authorization", "")
-            if auth.lower().startswith("bearer "):
-                key = auth[7:].strip()
+    keyword = "Bearer"
+    alg = DEFAULT_ALG
 
-        if not key:
+    def authenticate(self, request) -> Optional[Tuple[JwtUser, Any]]:
+        header = request.headers.get("Authorization") or ""
+        if not header:
             return None
 
-        if settings.ADMIN_API_KEY and key == settings.ADMIN_API_KEY:
-            return ApiKeyUser(role="admin"), key
-        if settings.USER_API_KEY and key == settings.USER_API_KEY:
-            return ApiKeyUser(role="user"), key
-        if settings.DEVICE_API_KEY and key == settings.DEVICE_API_KEY:
-            return ApiKeyUser(role="device"), key
+        parts = header.split()
+        if len(parts) != 2 or parts[0] != self.keyword:
+            return None
 
-        return None
+        token = parts[1]
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[self.alg])
+        except Exception as e:
+            # Convert any decode/validation error to a proper 401.
+            raise AuthenticationFailed("Invalid token") from e
+
+        sub = payload.get("sub")
+        role = payload.get("role")
+        if not sub or not role:
+            raise AuthenticationFailed("Invalid token payload")
+
+        return JwtUser(sub=str(sub), role=str(role)), payload
+
+    def authenticate_header(self, request) -> str:
+        # Returning a non-empty header makes DRF respond 401 (not 403) when unauthenticated.
+        return self.keyword

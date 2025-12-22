@@ -1,6 +1,7 @@
 {
-  "device_id": "TEST_DEVICE_001",
+  "event_id": "${HARVEST_EVENT_ID}",
+  "device_id": "TEST_DEVICE_${RUN_ID}",
+  "occurred_at": "${NOW_ISO}",
   "category_id": "C1",
-  "category_name": "size_s",
   "count": 5
 }

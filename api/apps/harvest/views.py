@@ -1,5 +1,8 @@
 from datetime import datetime
+import re
+
 from django.utils import timezone  # type: ignore
+from django.utils.dateparse import parse_date  # type: ignore
 from rest_framework.views import APIView  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework import status  # type: ignore
@@ -18,18 +21,38 @@ from .serializers import (
 from . import services
 
 def _get_period_from_query(request, period_type: str) -> str:
-    # OpenAPIにクエリパラメータ定義が無いため暫定:
-    # - period=YYYY-MM-DD / YYYY-Www / YYYY-MM
-    period = request.query_params.get("period")
-    if period:
-        return period
-    now = timezone.now()
-    if period_type == "daily":
-        return now.date().isoformat()
-    if period_type == "weekly":
-        iso = now.isocalendar()
+    """Compute target period for overrides.
+
+    Rules (設計判断 Q14):
+    - daily:   date=YYYY-MM-DD (default: today)
+    - weekly:  date=YYYY-MM-DD を含む週 (ISO week) (default: today)
+    - monthly: month=YYYY-MM (default: this month)
+    """
+
+    if period_type in ("daily", "weekly"):
+        date_str = request.query_params.get("date")
+        if date_str:
+            d = parse_date(date_str)
+            if d is None:
+                raise ValidationError({"date": ["Invalid date format. Use YYYY-MM-DD."]})
+        else:
+            d = timezone.localdate()
+
+        if period_type == "daily":
+            return d.isoformat()
+
+        iso = d.isocalendar()
         return f"{iso.year}-W{iso.week:02d}"
-    return f"{now.year:04d}-{now.month:02d}"
+
+    # monthly
+    month_str = request.query_params.get("month_ym") or request.query_params.get("month")
+    if month_str:
+        if not re.match(r"^\d{4}-\d{2}$", month_str):
+            raise ValidationError({"month": ["Invalid month format. Use YYYY-MM."]})
+        return month_str
+
+    today = timezone.localdate()
+    return f"{today.year:04d}-{today.month:02d}"
 
 class HarvestAmountAddView(APIView):
     """POST /harvest/amount/add (権限CSV未記載)"""

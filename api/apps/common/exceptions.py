@@ -52,6 +52,10 @@ def exception_handler(exc: Exception, context: Dict[str, Any]) -> Optional[Respo
             code = "not_found"
             message = "Not found"
             details = []
+        elif http_status == status.HTTP_409_CONFLICT:
+            code = "conflict"
+            message = "Conflict"
+            details = _details_from_validation(response.data)
         else:
             code = "error"
             message = "Error"
@@ -64,10 +68,6 @@ def exception_handler(exc: Exception, context: Dict[str, Any]) -> Optional[Respo
     # Non-DRF exceptions
     if request is None:
         return response
-
-    if isinstance(exc, IntegrityError):
-        body = error_envelope(request, code="conflict", message="Conflict", details=[])
-        return Response(body, status=status.HTTP_409_CONFLICT)
 
     body = error_envelope(request, code="internal_server_error", message="Internal server error", details=[])
     return Response(body, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

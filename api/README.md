@@ -1,13 +1,5 @@
 # Django API Server (Django + DRF)
 
-## 根拠（一次情報）
-- `01_WEB機能一覧(機能一覧).csv`
-- `openapi.yaml`
-
-本リポジトリは上記2ファイルのエンドポイント（path/method/operationId）を前提に、TDDで実装する構成です。
-
----
-
 ## 1. セットアップ（ローカル）
 
 ```bash
@@ -37,8 +29,6 @@ python manage.py migrate
 python manage.py runserver 0.0.0.0:8000
 ```
 
----
-
 ## 2. 認証（暫定実装）
 
 CSVの「一般≧/管理者≧」をコードで担保するために、OpenAPI未記載の **API Key 認証**を暫定導入しています。
@@ -49,33 +39,57 @@ CSVの「一般≧/管理者≧」をコードで担保するために、OpenAPI
   - `USER_API_KEY` → user（一般）
   - `DEVICE_API_KEY` → device
 
-OpenAPI側のsecurity定義は未更新です（意図を崩さないため）。
-
----
 
 ## 3. TDD 実行
 
-### pytest（ユニット＋統合）
+### 1) まとめて実行
 
 ```bash
-pytest -q
+docker compose run --rm \
+  -e DJANGO_SETTINGS_MODULE=config.settings.local \
+  api pytest -q
 ```
 
-### nox（Windowsでも再現しやすい統一実行）
+`--rm` は実行後にコンテナを削除します。  ([Docker Documentation][2])
+
+### 2) 詳細ログで実行
 
 ```bash
-nox -s unit
-nox -s integration
-nox -s e2e_local
+docker compose run --rm \
+  -e DJANGO_SETTINGS_MODULE=config.settings.local \
+  api pytest -vv
 ```
 
-### tools 統合ランナー
+### 3) 失敗したところで止める
 
 ```bash
-python tools/run_all_tests.py
+docker compose run --rm \
+  -e DJANGO_SETTINGS_MODULE=config.settings.local \
+  api pytest -x
 ```
 
----
+### 4) 特定テストだけ
+
+```bash
+docker compose run --rm \
+  -e DJANGO_SETTINGS_MODULE=config.settings.local \
+  api pytest -q -k weekly_override
+```
+
+## pytest-django（DB/マイグレーション）
+
+pytest-django はテスト用DBを作成して実行します。
+繰り返しのテストで速度を上げたい場合は `--reuse-db` が使えます（必要なら `--create-db` で作り直し）。 ([pytest-django Documentation][3])
+
+例:
+
+```bash
+docker compose run --rm \
+  -e DJANGO_SETTINGS_MODULE=config.settings.local \
+  api pytest -q --reuse-db
+```
+
+マイグレーションが壊れていると、pytest以前に落ちます（`NodeNotFoundError` など）。
 
 ## 4. E2E（curl suite）
 
@@ -85,39 +99,16 @@ python tools/run_all_tests.py
 実行例:
 
 ```bash
-export BASE_URL=http://127.0.0.1:8000
-export ADMIN_API_KEY=...
-python e2e/run_curl_suite.py e2e/suites/local.json
-```
+# Docker 内から reverse-proxy を引くのでこれ
+export BASE_URL="http://reverse-proxy/api"
 
----
+docker compose run --rm -T -w /app \
+  -e BASE_URL="$BASE_URL" \
+  -e ADMIN_JWT="$ADMIN_JWT" \
+  -e USER_JWT="$USER_JWT" \
+  -e DEVICE_JWT="$DEVICE_JWT" \
+  -e DJANGO_SETTINGS_MODULE=config.settings.local \
+  -e PYTHONPATH=/app \
+  api python e2e/run_curl_suite.py e2e/suites/local.json
 
-## 5. OpenAPIに未確定（TBD）の箇所について
-
-`openapi.yaml` の以下は `TBD` になっており、実装で勝手に固定しない方針です。
-
-- 一部の request schema（例: createUsersRequest など）
-- 一部のクエリパラメータ（例: harvest category override の対象 period 指定）
-
-このリポジトリでは **暫定の最小ペイロード**で受理できるようにしつつ、
-`README.md` に暫定仕様として明示しています。確定後に OpenAPI と実装を同期してください。
-
-暫定仕様:
-- 収穫量/不良品 add: device_id, count, occurred_at（任意）を受理
-- harvest category override（PATCH）: クエリ `period` を受理（未指定時は当日/当週/当月）
-
----
-
-## 6. デプロイ（Render）
-
-本番設定:
-- `DJANGO_SETTINGS_MODULE=config.settings.production`
-- `DATABASE_URL` 必須
-
-依存:
-- `requirements/production.txt`
-
-起動コマンド例:
-```bash
-gunicorn config.wsgi:application
 ```

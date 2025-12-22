@@ -1,5 +1,5 @@
 {
-  "id": "TEST_DEVICE_001",
+  "id": "TEST_DEVICE_${RUN_ID}",
   "name": "Test Device",
   "status": "active"
 }

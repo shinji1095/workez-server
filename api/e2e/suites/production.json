@@ -6,7 +6,7 @@
       "method": "GET",
       "path": "/users?page=1&page_size=1",
       "headers": {
-        "X-API-KEY": "${ADMIN_API_KEY}"
+        "Authorization": "Bearer ${ADMIN_JWT}"
       },
       "expect_status": 200
     },
@@ -15,7 +15,7 @@
       "method": "GET",
       "path": "/harvest/amount/daily?page=1&page_size=1",
       "headers": {
-        "X-API-KEY": "${USER_API_KEY}"
+        "Authorization": "Bearer ${USER_JWT}"
       },
       "expect_status": 200
     }

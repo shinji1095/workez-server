@@ -1,7 +1,6 @@
 from .base import *  # noqa
 
 DEBUG = True
-SECURE_SSL_REDIRECT = False
 
 # Local DB: SQLite by default
 DATABASES = {

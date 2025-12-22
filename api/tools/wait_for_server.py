@@ -10,10 +10,10 @@ def main() -> int:
     while time.time() - start < timeout_s:
         try:
             req = urllib.request.Request(url, method="GET")
-            # optional API key
-            k = os.getenv("ADMIN_API_KEY", "")
-            if k:
-                req.add_header("X-API-KEY", k)
+            # optional JWT
+            token = os.getenv("ADMIN_JWT", "")
+            if token:
+                req.add_header("Authorization", f"Bearer {token}")
             with urllib.request.urlopen(req, timeout=3) as resp:
                 if 200 <= resp.status < 500:
                     return 0

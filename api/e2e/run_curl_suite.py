@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict
+import uuid
+from datetime import datetime, timezone
 
 def _render(s: str) -> str:
     # ${VAR} substitution
@@ -27,6 +29,7 @@ def run_case(base_url: str, case: Dict[str, Any]) -> bool:
     if payload_file:
         p = Path(payload_file)
         body = p.read_text(encoding="utf-8")
+        body = _render(body)
         cmd += ["-H", "Content-Type: application/json", "--data", body]
 
     expected_status = int(case.get("expect_status", 200))
@@ -51,6 +54,12 @@ def run_case(base_url: str, case: Dict[str, Any]) -> bool:
     return ok
 
 def main() -> int:
+    # Provide stable defaults for placeholder variables used in payloads
+    os.environ.setdefault("RUN_ID", uuid.uuid4().hex[:8])
+    os.environ.setdefault("NOW_ISO", datetime.now(timezone.utc).astimezone().isoformat())
+    os.environ.setdefault("HARVEST_EVENT_ID", str(uuid.uuid4()))
+    os.environ.setdefault("DEFECTS_EVENT_ID", str(uuid.uuid4()))
+
     if len(sys.argv) != 2:
         print("Usage: python e2e/run_curl_suite.py <suite.json>")
         return 2
