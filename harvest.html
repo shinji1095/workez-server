@@ -87,6 +87,11 @@ function lockScroll(asyncFn) {
   });
 }
 
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = true;
+Chart.defaults.animation = false;
+
+
 
 const API_BASE = "http://localhost:3000/harvest";
 /* =========================
@@ -134,9 +139,19 @@ async function fetchHarvest() {
 
 
 async function fetchDefects() {
-  const url = `${API_BASE}/defects/${currentPeriod}`;
-  return (await fetch(url)).json();
+  if (currentCategory === "all") {
+    const res = await fetch(
+      `${API_BASE}/defects/${currentPeriod}/all`
+    );
+    return res.json();
+  } else {
+    const res = await fetch(
+      `${API_BASE}/defects/${currentPeriod}/category/${currentCategory}`
+    );
+    return res.json();
+  }
 }
+
 
 async function loadCategory(event, category) {
   event.preventDefault();          
@@ -265,52 +280,133 @@ harvestChart = new Chart(document.getElementById("harvestChart"), {
 ========================= */
 
 function renderDefectCharts(data) {
-  const labels = data.map(d => d.date);
-  const counts = data.map(d => d.count);
-  const ratios = data.map(d => d.ratio);
 
   if (defectCountChart) defectCountChart.destroy();
   if (defectRatioChart) defectRatioChart.destroy();
 
-defectCountChart = new Chart(
-  document.getElementById("defectCountChart"),
-  {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        data: counts,
-        backgroundColor: DEFECT_COUNT_COLOR
-      }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      responsive: true
-    }
-  }
-);
+  const labelPrefix =
+    currentPeriod === "daily" ? "Day" :
+    currentPeriod === "weekly" ? "Week" :
+    "Month";
 
+  let labels = [];
+  let countDatasets = [];
+  let ratioDatasets = [];
 
- defectRatioChart = new Chart(
-  document.getElementById("defectRatioChart"),
-  {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        data: ratios,
-        borderColor: DEFECT_RATIO_COLOR,
-        backgroundColor: DEFECT_RATIO_COLOR,
-        tension: 0.3,
-        fill: false
-      }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      responsive: true
-    }
+  /* =========================
+     ALL (STACKED)
+  ========================= */
+  if (currentCategory === "all") {
+    const length = data.large.length;
+    labels = Array.from({ length }, (_, i) => `${labelPrefix} ${i + 1}`);
+
+    countDatasets = [
+      {
+        label: "Large",
+        data: data.large.map(d => d.count),
+        backgroundColor: CATEGORY_COLORS[1]
+      },
+      {
+        label: "Medium",
+        data: data.medium.map(d => d.count),
+        backgroundColor: CATEGORY_COLORS[2]
+      },
+      {
+        label: "Small",
+        data: data.small.map(d => d.count),
+        backgroundColor: CATEGORY_COLORS[3]
+      }
+    ];
+
+    ratioDatasets = [
+      {
+        label: "Large",
+        data: data.large.map(d => d.ratio),
+        borderColor: CATEGORY_COLORS[1],
+        backgroundColor: CATEGORY_COLORS[1],
+        tension: 0.3
+      },
+      {
+        label: "Medium",
+        data: data.medium.map(d => d.ratio),
+        borderColor: CATEGORY_COLORS[2],
+        backgroundColor: CATEGORY_COLORS[2],
+        tension: 0.3
+      },
+      {
+        label: "Small",
+        data: data.small.map(d => d.ratio),
+        borderColor: CATEGORY_COLORS[3],
+        backgroundColor: CATEGORY_COLORS[3],
+        tension: 0.3
+      }
+    ];
   }
-);
+
+  /* =========================
+     SINGLE CATEGORY
+  ========================= */
+  else {
+    labels = data.map((_, i) => `${labelPrefix} ${i + 1}`);
+
+    countDatasets = [{
+      data: data.map(d => d.count),
+      backgroundColor: CATEGORY_COLORS[currentCategory]
+    }];
+
+    ratioDatasets = [{
+      data: data.map(d => d.ratio),
+      borderColor: CATEGORY_COLORS[currentCategory],
+      backgroundColor: CATEGORY_COLORS[currentCategory],
+      tension: 0.3
+    }];
+  }
+
+  /* =========================
+     DEFECT COUNT
+  ========================= */
+  defectCountChart = new Chart(
+    document.getElementById("defectCountChart"),
+    {
+      type: "bar",
+      data: { labels, datasets: countDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: currentCategory === "all" }
+        },
+        scales: {
+          x: { stacked: currentCategory === "all" },
+          y: { stacked: currentCategory === "all", beginAtZero: true }
+        }
+      }
+    }
+  );
+
+  /* =========================
+     DEFECT RATIO
+  ========================= */
+  defectRatioChart = new Chart(
+    document.getElementById("defectRatioChart"),
+    {
+      type: "line",
+      data: { labels, datasets: ratioDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: currentCategory === "all" }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 1
+          }
+        }
+      }
+    }
+  );
 /* =========================
    EDIT CHARTS
 ========================= */

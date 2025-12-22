@@ -1,57 +1,61 @@
 // ⚠️ TEMPORARY MOCK DATA
 
-function randomSeries(length = 7) {
+const PERIOD_LENGTH = {
+  daily: 7,
+  weekly: 4,
+  monthly: 12
+};
+
+function randomSeries(period) {
+  const length = PERIOD_LENGTH[period];
+
   return Array.from({ length }, (_, i) => ({
-    date: `Day ${i + 1}`,
+    date:
+      period === "daily" ? `Day ${i + 1}` :
+      period === "weekly" ? `Week ${i + 1}` :
+      `Month ${i + 1}`,
     amount: Math.floor(Math.random() * 100 + 20)
   }));
 }
 
-module.exports = {
-  daily: randomSeries(7),
-  weekly: randomSeries(4),
-  monthly: randomSeries(12),
+function randomSeriesWithRatio(period) {
+  const length = PERIOD_LENGTH[period];
 
-  category(categoryId) {
-    return randomSeries(7).map(d => ({
-      ...d,
-      categoryId
-    }));
-  },
-
-  targets: {
-    daily: 500,
-    weekly: 3000,
-    monthly: 12000
-  }
-};
-
-function randomSeriesWithRatio(length = 7) {
   return Array.from({ length }, (_, i) => ({
-    date: `Day ${i + 1}`,
+    date:
+      period === "daily" ? `Day ${i + 1}` :
+      period === "weekly" ? `Week ${i + 1}` :
+      `Month ${i + 1}`,
     count: Math.floor(Math.random() * 10),
-    ratio: Math.random().toFixed(2)
+    ratio: Number(Math.random().toFixed(2))
   }));
 }
 
-module.exports = {
-  daily: randomSeries(7),
-  weekly: randomSeries(4),
-  monthly: randomSeries(12),
+/* =========================
+   EXPORTS
+========================= */
 
-  category(categoryId) {
-    return randomSeries(7).map(d => ({
+module.exports = {
+  /* Harvest totals */
+  daily: randomSeries("daily"),
+  weekly: randomSeries("weekly"),
+  monthly: randomSeries("monthly"),
+
+  category(period, categoryId) {
+    return randomSeries(period).map(d => ({
       ...d,
       categoryId
     }));
   },
 
+  /* Defects */
   defects: {
-    daily: randomSeriesWithRatio(7),
-    weekly: randomSeriesWithRatio(4),
-    monthly: randomSeriesWithRatio(12)
+    daily: randomSeriesWithRatio("daily"),
+    weekly: randomSeriesWithRatio("weekly"),
+    monthly: randomSeriesWithRatio("monthly")
   },
 
+  /* Targets */
   targets: {
     daily: 500,
     weekly: 3000,

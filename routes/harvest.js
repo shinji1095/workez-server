@@ -33,9 +33,9 @@ router.get("/amount/monthly", (req, res) => {
  * 仕分けサイズごと（GET）
  */
 router.get("/amount/:period/category/:categoryId", (req, res) => {
-  const { categoryId } = req.params;
+  const { period, categoryId } = req.params;
 
-  res.json(data.category(categoryId));
+  res.json(data.category(period, categoryId));
 });
 
 /**
@@ -73,23 +73,14 @@ router.get("/defects/:period", (req, res) => {
   const { period } = req.params;
   res.json(data.defects[period]);
 });
-
 router.get("/amount/:period/all", (req, res) => {
   const { period } = req.params;
 
   res.json({
-    large: data.category(1),
-    medium: data.category(2),
-    small: data.category(3)
+    large: data.category(period, 1),
+    medium: data.category(period, 2),
+    small: data.category(period, 3)
   });
 });
-function buildLabels(length) {
-  const prefix =
-    currentPeriod === "daily" ? "Day" :
-    currentPeriod === "weekly" ? "Week" :
-    "Month";
-
-  return Array.from({ length }, (_, i) => `${prefix} ${i + 1}`);
-}
 
 module.exports = router;
