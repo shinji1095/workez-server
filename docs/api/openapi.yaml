@@ -6,7 +6,7 @@ info:
 
     一次情報はプロジェクト内CSV（01_WEB機能一覧(機能一覧).csv）の「メソッド」「パス」等のみ。
 
-    CSVに無い入出力・認証等はTBDとして扱う。
+    CSVに無い入出力・認証等は、本OpenAPIで仕様として確定させる。
 
     '
 servers:
@@ -44,7 +44,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/userId'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -64,8 +64,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /analytics/harvest/monthly:
@@ -96,8 +94,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -131,14 +127,12 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
-  /analytics/revenue/yealy:
+  /analytics/revenue/yearly:
     get:
       tags:
       - analytics
@@ -150,14 +144,14 @@ paths:
         説明: 年間の売り上げ推移
 
         '
-      operationId: listAnalyticsRevenueYealy
+      operationId: listAnalyticsRevenueYearly
       responses:
         '200':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListAnalyticsRevenueYealyResponse'
+                $ref: '#/components/schemas/ListAnalyticsRevenueYearlyResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -166,8 +160,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -178,10 +170,10 @@ paths:
       tags:
       - defects
       summary: 不良品数の送信
-      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\nデバイスを起動してから10分おきや1時間おきに不良品数をアップロード\n"
+      description: "ページ: 本日の不良品数の可視化\n権限（CSV記載）: \n説明: デバイスが前回送信以降の差分（インクリメント）をアップロード\nevent_id による冪等性を担保（重複は 409）\n"
       operationId: createDefectsAmountAdd
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -231,8 +223,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -264,8 +254,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -297,8 +285,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -330,8 +316,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -363,8 +347,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -381,7 +363,7 @@ paths:
         '
       operationId: createDevices
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -401,8 +383,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /devices/{deviceId}:
@@ -433,11 +413,9 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /devices/{deviceId}/alerm:
+  /devices/{deviceId}/alarm:
     get:
       tags:
       - devices
@@ -447,7 +425,7 @@ paths:
         権限（CSV記載）: 一般≧
 
         '
-      operationId: retrieveDevicesAlerm
+      operationId: retrieveDevicesAlarm
       parameters:
       - $ref: '#/components/parameters/deviceId'
       responses:
@@ -456,7 +434,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RetrieveDevicesAlermResponse'
+                $ref: '#/components/schemas/RetrieveDevicesAlarmResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -465,31 +443,29 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
       - devices
-      summary: 故障アラーム送信
-      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\n"
-      operationId: createDevicesAlerm
+      summary: 故障アラーム通知
+      description: "ページ: 故障アラーム\n権限（CSV記載）: \n説明: デバイスが最新のアラーム状態（AlarmItem）を送信\n"
+      operationId: createDevicesAlarm
       parameters:
       - $ref: '#/components/parameters/deviceId'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateDevicesAlermRequest'
+              $ref: '#/components/schemas/CreateDevicesAlarmRequest'
       responses:
         '201':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateDevicesAlermResponse'
+                $ref: '#/components/schemas/CreateDevicesAlarmResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -498,11 +474,9 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /devices/{deviceId}/alerm/detail:
+  /devices/{deviceId}/alarm/detail:
     get:
       tags:
       - devices
@@ -512,7 +486,7 @@ paths:
         権限（CSV記載）: 一般≧
 
         '
-      operationId: retrieveDevicesAlermDetail
+      operationId: retrieveDevicesAlarmDetail
       parameters:
       - $ref: '#/components/parameters/deviceId'
       - $ref: '#/components/parameters/page'
@@ -523,7 +497,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RetrieveDevicesAlermDetailResponse'
+                $ref: '#/components/schemas/RetrieveDevicesAlarmDetailResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -532,8 +506,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /devices/{deviceId}/battery:
@@ -564,8 +536,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
@@ -577,7 +547,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/deviceId'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -597,8 +567,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/amount/add:
@@ -606,10 +574,10 @@ paths:
       tags:
       - harvest
       summary: 収穫量の送信
-      description: "ページ: なし\n権限（CSV記載）: \n説明: デバイス→バックエンド\nデバイスを起動してから10分おきや1時間おきに総収穫量をアップロード\n"
+      description: "ページ: 本日の収穫量の可視化\n権限（CSV記載）: \n説明: デバイスが前回送信以降の差分（インクリメント）をアップロード\nevent_id による冪等性を担保（重複は 409）\n"
       operationId: createHarvestAmountAdd
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -661,8 +629,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -700,8 +666,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
@@ -712,18 +676,19 @@ paths:
 
         権限（CSV記載）: 管理者≧
 
-        説明: 仕分けサイズごとの日間収穫量の変更
+        説明: 仕分けサイズごとの日間収穫量（手動変更）
 
-        クエリパラメータで日付を指定
+        クエリパラメータ date=YYYY-MM-DD を指定
 
-        クエリパラメータがなければ当日
+        未指定の場合は当日（サーバー時刻）
 
         '
       operationId: partialUpdateHarvestAmountDailyCategory
       parameters:
       - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/date'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -743,8 +708,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/amount/monthly:
@@ -775,8 +738,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -814,8 +775,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
@@ -826,18 +785,19 @@ paths:
 
         権限（CSV記載）: 管理者≧
 
-        説明: 仕分けサイズごとの月間収穫量の推移
+        説明: 仕分けサイズごとの月間収穫量の推移（手動変更）
 
-        クエリパラメータで月を指定
+        クエリパラメータ month=YYYY-MM を指定
 
-        クエリパラメータがなければ今月
+        未指定の場合は今月（サーバー時刻）
 
         '
       operationId: partialUpdateHarvestAmountMonthlyCategory
       parameters:
       - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/month_ym'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -857,8 +817,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/amount/weekly:
@@ -889,8 +847,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -928,8 +884,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
@@ -940,18 +894,19 @@ paths:
 
         権限（CSV記載）: 管理者≧
 
-        説明: 仕分けサイズごとの週間収穫量の推移
+        説明: 仕分けサイズごとの週間収穫量の推移（手動変更）
 
-        クエリパラメータで週を指定
+        クエリパラメータ date=YYYY-MM-DD を指定（その日を含む週を対象）
 
-        クエリパラメータがなければ今週
+        未指定の場合は今週（サーバー時刻）
 
         '
       operationId: partialUpdateHarvestAmountWeeklyCategory
       parameters:
       - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/date'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -971,8 +926,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/target/daily:
@@ -989,7 +942,7 @@ paths:
         '
       operationId: updateHarvestTargetDaily
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1009,8 +962,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/target/monthly:
@@ -1027,7 +978,7 @@ paths:
         '
       operationId: updateHarvestTargetMonthly
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1047,8 +998,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/target/weekly:
@@ -1065,7 +1014,7 @@ paths:
         '
       operationId: updateHarvestTargetWeekly
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1085,8 +1034,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /prices/category/{categoryId}:
@@ -1098,14 +1045,14 @@ paths:
 
         権限（CSV記載）: 管理者≧
 
-        説明: 今月の売り上げを登録
+        説明: 指定年月の単価（円/個）を登録
 
         '
       operationId: createPricesCategory
       parameters:
       - $ref: '#/components/parameters/categoryId'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1125,8 +1072,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     put:
@@ -1137,14 +1082,14 @@ paths:
 
         権限（CSV記載）: 管理者≧
 
-        説明: クエリパラメータで月を指定
+        説明: 指定年月の単価（円/個）を更新
 
         '
       operationId: updatePricesCategory
       parameters:
       - $ref: '#/components/parameters/categoryId'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1164,8 +1109,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -1176,12 +1119,14 @@ paths:
 
         権限（CSV記載）: 管理者≧
 
-        説明: クエリパラメータで月を指定
+        説明: クエリパラメータ year, month で指定した単価を削除
 
         '
       operationId: deletePricesCategory
       parameters:
       - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/year'
+      - $ref: '#/components/parameters/month'
       responses:
         '200':
           description: 成功
@@ -1197,8 +1142,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /prices/monthly:
@@ -1206,7 +1149,13 @@ paths:
       tags:
       - prices
       summary: 単価一覧（月間）
-      description: "ページ: 売上推移\n権限（CSV記載）: \n説明: 月ごとの単価推移\n"
+      description: 'ページ: 売上推移
+
+        権限（CSV記載）: 管理者≧
+
+        説明: 月ごとの単価推移
+
+        '
       operationId: listPricesMonthly
       responses:
         '200':
@@ -1223,8 +1172,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -1252,8 +1199,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -1285,8 +1230,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
       parameters:
@@ -1303,7 +1246,7 @@ paths:
         '
       operationId: createUsers
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1323,8 +1266,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /users/{userId}:
@@ -1341,7 +1282,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/userId'
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
@@ -1361,8 +1302,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -1392,8 +1331,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 components:
@@ -1404,21 +1341,30 @@ components:
       required: true
       schema:
         type: string
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+        minLength: 1
+        maxLength: 64
+        example: S
+      description: '収穫カテゴリ（仕分けサイズ等）のID。例: S'
     deviceId:
       name: deviceId
       in: path
       required: true
       schema:
         type: string
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+        minLength: 1
+        maxLength: 64
+        example: DEV001
+        pattern: ^[A-Za-z0-9_-]+$
+      description: 'デバイスID。例: DEV001'
     userId:
       name: userId
       in: path
       required: true
       schema:
         type: string
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+        format: uuid
+        example: 550e8400-e29b-41d4-a716-446655440000
+      description: ユーザーID（UUID）
     page:
       name: page
       in: query
@@ -1438,39 +1384,77 @@ components:
         maximum: 500
         default: 50
       description: 1ページあたりの件数
+    date:
+      name: date
+      in: query
+      required: false
+      description: 基準日（YYYY-MM-DD）。未指定の場合は当日（サーバー時刻）。
+      schema:
+        type: string
+        format: date
+      example: '2025-12-21'
+    month_ym:
+      name: month
+      in: query
+      required: false
+      description: 対象月（YYYY-MM）。未指定の場合は当月（サーバー時刻）
+      schema:
+        type: string
+        pattern: ^\d{4}-\d{2}$
+      example: 2025-12
+    year:
+      name: year
+      in: query
+      required: true
+      description: 対象年（YYYY）
+      schema:
+        type: integer
+        minimum: 2000
+        maximum: 2100
+      example: 2025
+    month:
+      name: month
+      in: query
+      required: true
+      description: '対象月（MM: 1-12）'
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+      example: 12
   responses:
     BadRequest:
-      description: 不正なリクエスト（TBD）
+      description: 不正なリクエスト（バリデーションエラー等）
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
-      description: 認証エラー（TBD）
+      description: 認証エラー（未認証/認証情報不正）
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     Forbidden:
-      description: 権限エラー（TBD）
+      description: 権限エラー（アクセス権限不足）
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     NotFound:
-      description: リソース未存在（TBD）
+      description: 対象IDが存在しない
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     Conflict:
-      description: 競合（TBD）
+      description: 競合（event_id の重複）
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     InternalServerError:
-      description: サーバーエラー（TBD）
+      description: サーバー内部エラー
       content:
         application/json:
           schema:
@@ -1488,7 +1472,15 @@ components:
         reason:
           type: string
         value:
-          description: 任意型（ANY）。TBD。
+          description: 入力値（ログ用）。型はリクエストにより変わるため union で表現。
+          nullable: true
+          oneOf:
+          - type: string
+          - type: number
+          - type: integer
+          - type: boolean
+          - type: object
+          - type: array
     ErrorResponse:
       type: object
       required:
@@ -1513,7 +1505,7 @@ components:
                 $ref: '#/components/schemas/ErrorDetail'
             request_id:
               type: string
-              description: リクエスト追跡ID。生成方式はTBD。
+              description: 'リクエスト追跡ID。サーバーが発行する。推奨: req_<uuid>（例: req_550e8400-e29b-41d4-a716-446655440000）'
     CreateDefectsAmountAddResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1526,8 +1518,35 @@ components:
       description: CreateDefectsAmountAddResponse（回答例を反映）
     CreateDefectsAmountAddRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 不良品数追加リクエスト（デバイス→サーバー）（差分アップロード）
+      properties:
+        device_id:
+          type: string
+          example: DEV001
+        category_id:
+          type: string
+          example: S
+        count:
+          type: integer
+          minimum: 1
+          example: 12
+          description: 前回送信以降の差分（インクリメント）
+        occurred_at:
+          type: string
+          format: date-time
+          example: '2025-12-21T12:34:56+09:00'
+          description: 計測時刻（timestamp）
+        event_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      required:
+      - event_id
+      - device_id
+      - category_id
+      - count
+      - occurred_at
+      additionalProperties: false
     CreateDevicesResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1540,22 +1559,27 @@ components:
       description: CreateDevicesResponse（回答例を反映）
     CreateDevicesRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
-    CreateDevicesAlermResponse:
-      allOf:
-      - $ref: '#/components/schemas/SuccessEnvelopeBase'
-      - type: object
-        properties:
-          data:
-            $ref: '#/components/schemas/AlarmItem'
-        required:
-        - data
-      description: CreateDevicesAlermResponse（回答例を反映）
-    CreateDevicesAlermRequest:
-      type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: デバイス登録リクエスト
+      properties:
+        id:
+          type: string
+          example: DEV001
+          pattern: ^[A-Za-z0-9_-]+$
+        name:
+          type: string
+          example: 収穫カウンタ1
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - maintenance
+          example: active
+          default: active
+      required:
+      - id
+      - name
+      additionalProperties: false
     CreateDevicesBatteryResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1568,8 +1592,25 @@ components:
       description: CreateDevicesBatteryResponse（回答例を反映）
     CreateDevicesBatteryRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: バッテリー状態通知リクエスト（デバイス→サーバー）
+      additionalProperties: false
+      properties:
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 80
+        is_charging:
+          type: boolean
+          example: false
+        updated_at:
+          type: string
+          format: date-time
+          example: '2025-12-21T12:34:56+09:00'
+      required:
+      - percent
+      - is_charging
+      - updated_at
     CreateHarvestAmountAddResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1582,8 +1623,35 @@ components:
       description: CreateHarvestAmountAddResponse（回答例を反映）
     CreateHarvestAmountAddRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 収穫数追加リクエスト（デバイス→サーバー）（差分アップロード）
+      properties:
+        device_id:
+          type: string
+          example: DEV001
+        category_id:
+          type: string
+          example: S
+        count:
+          type: integer
+          minimum: 1
+          example: 12
+          description: 前回送信以降の差分（インクリメント）
+        occurred_at:
+          type: string
+          format: date-time
+          example: '2025-12-21T12:34:56+09:00'
+          description: 計測時刻（timestamp）
+        event_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      required:
+      - event_id
+      - device_id
+      - category_id
+      - count
+      - occurred_at
+      additionalProperties: false
     CreatePricesCategoryResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1596,8 +1664,28 @@ components:
       description: CreatePricesCategoryResponse（回答例を反映）
     CreatePricesCategoryRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 単価登録リクエスト（円/個）
+      additionalProperties: false
+      properties:
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+          example: 2025
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 12
+        unit_price_yen:
+          type: integer
+          minimum: 0
+          example: 120
+          description: 単価（円/個）
+      required:
+      - year
+      - month
+      - unit_price_yen
     CreateUsersResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1610,8 +1698,24 @@ components:
       description: CreateUsersResponse（回答例を反映）
     CreateUsersRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: ユーザー登録リクエスト
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: 山田太郎
+        password:
+          type: string
+          minLength: 8
+          example: password1234
+      required:
+      - email
+      - name
+      - password
+      additionalProperties: false
     DeleteDevicesResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1662,16 +1766,6 @@ components:
         required:
         - data
       description: ListAnalyticsRevenueMonthlyResponse（回答例を反映）
-    ListAnalyticsRevenueYealyResponse:
-      allOf:
-      - $ref: '#/components/schemas/SuccessEnvelopeBase'
-      - type: object
-        properties:
-          data:
-            $ref: '#/components/schemas/PaginatedRevenueYearly'
-        required:
-        - data
-      description: ListAnalyticsRevenueYealyResponse（回答例を反映）
     ListDefectsAmountMonthlyResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1794,8 +1888,16 @@ components:
       description: PartialUpdateHarvestAmountDailyCategoryResponse（回答例を反映）
     PartialUpdateHarvestAmountDailyCategoryRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 手動変更（確定値で置換）
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          example: 123
+          description: その期間の確定値（置換）
+      required:
+      - count
     PartialUpdateHarvestAmountMonthlyCategoryResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1808,8 +1910,16 @@ components:
       description: PartialUpdateHarvestAmountMonthlyCategoryResponse（回答例を反映）
     PartialUpdateHarvestAmountMonthlyCategoryRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 手動変更（確定値で置換）
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          example: 123
+          description: その期間の確定値（置換）
+      required:
+      - count
     PartialUpdateHarvestAmountWeeklyCategoryResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1822,8 +1932,16 @@ components:
       description: PartialUpdateHarvestAmountWeeklyCategoryResponse（回答例を反映）
     PartialUpdateHarvestAmountWeeklyCategoryRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 手動変更（確定値で置換）
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          example: 123
+          description: その期間の確定値（置換）
+      required:
+      - count
     PartialUpdateUsersResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1836,28 +1954,13 @@ components:
       description: PartialUpdateUsersResponse（回答例を反映）
     PartialUpdateUsersRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
-    RetrieveDevicesAlermResponse:
-      allOf:
-      - $ref: '#/components/schemas/SuccessEnvelopeBase'
-      - type: object
-        properties:
-          data:
-            $ref: '#/components/schemas/AlarmStatus'
-        required:
-        - data
-      description: RetrieveDevicesAlermResponse（回答例を反映）
-    RetrieveDevicesAlermDetailResponse:
-      allOf:
-      - $ref: '#/components/schemas/SuccessEnvelopeBase'
-      - type: object
-        properties:
-          data:
-            $ref: '#/components/schemas/PaginatedAlarmItems'
-        required:
-        - data
-      description: RetrieveDevicesAlermDetailResponse（回答例を反映）
+      description: ユーザー更新リクエスト（本人用）
+      properties:
+        name:
+          type: string
+          example: 山田花子
+      required: []
+      additionalProperties: false
     RetrieveDevicesBatteryResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1910,8 +2013,22 @@ components:
       description: UpdateAdminUsersResponse（回答例を反映）
     UpdateAdminUsersRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: ユーザー更新リクエスト（管理者用）
+      properties:
+        name:
+          type: string
+          example: 山田太郎
+        role:
+          type: string
+          enum:
+          - admin
+          - viewer
+          example: viewer
+        is_active:
+          type: boolean
+          example: true
+      required: []
+      additionalProperties: false
     UpdateHarvestTargetDailyResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1924,8 +2041,20 @@ components:
       description: UpdateHarvestTargetDailyResponse（回答例を反映）
     UpdateHarvestTargetDailyRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 目標収穫量設定更新リクエスト（daily）
+      properties:
+        target_count:
+          type: integer
+          minimum: 0
+          example: 4000
+        effective_from:
+          type: string
+          format: date
+          nullable: true
+          example: '2025-12-15'
+      required:
+      - target_count
+      additionalProperties: false
     UpdateHarvestTargetMonthlyResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1938,8 +2067,20 @@ components:
       description: UpdateHarvestTargetMonthlyResponse（回答例を反映）
     UpdateHarvestTargetMonthlyRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 目標収穫量設定更新リクエスト（monthly）
+      properties:
+        target_count:
+          type: integer
+          minimum: 0
+          example: 4000
+        effective_from:
+          type: string
+          format: date
+          nullable: true
+          example: '2025-12-15'
+      required:
+      - target_count
+      additionalProperties: false
     UpdateHarvestTargetWeeklyResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1952,8 +2093,20 @@ components:
       description: UpdateHarvestTargetWeeklyResponse（回答例を反映）
     UpdateHarvestTargetWeeklyRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 目標収穫量設定更新リクエスト（weekly）
+      properties:
+        target_count:
+          type: integer
+          minimum: 0
+          example: 4000
+        effective_from:
+          type: string
+          format: date
+          nullable: true
+          example: '2025-12-15'
+      required:
+      - target_count
+      additionalProperties: false
     UpdatePricesCategoryResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1966,8 +2119,28 @@ components:
       description: UpdatePricesCategoryResponse（回答例を反映）
     UpdatePricesCategoryRequest:
       type: object
-      additionalProperties: true
-      description: 'TBD: CSVに入出力の定義が無いため要確認'
+      description: 単価更新リクエスト（円/個）
+      additionalProperties: false
+      properties:
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+          example: 2025
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 12
+        unit_price_yen:
+          type: integer
+          minimum: 0
+          example: 120
+          description: 単価（円/個）
+      required:
+      - year
+      - month
+      - unit_price_yen
     SuccessEnvelopeBase:
       type: object
       description: 成功レスポンスの共通ラッパー
@@ -1978,7 +2151,7 @@ components:
           example: success
         request_id:
           type: string
-          description: リクエスト識別子（サーバー側で採番する場合）
+          description: 'リクエスト追跡ID。サーバーが発行する場合に付与。推奨: req_<uuid>'
           example: req_123456
         data: {}
       required:
@@ -3101,3 +3274,53 @@ components:
       - deleted
       - category_id
       additionalProperties: false
+    CreateDevicesAlarmRequest:
+      $ref: '#/components/schemas/AlarmItem'
+    CreateDevicesAlarmResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AlarmItem'
+        required:
+        - data
+      description: CreateDevicesAlarmResponse（回答例を反映）
+    RetrieveDevicesAlarmResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AlarmStatus'
+        required:
+        - data
+      description: RetrieveDevicesAlarmResponse（回答例を反映）
+    RetrieveDevicesAlarmDetailResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedAlarmItems'
+        required:
+        - data
+      description: RetrieveDevicesAlarmDetailResponse（回答例を反映）
+    ListAnalyticsRevenueYearlyResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedRevenueYearly'
+        required:
+        - data
+      description: ListAnalyticsRevenueYearlyResponse（回答例を反映）
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JWT Bearer token. Authorization: Bearer <access_token>'
+security:
+- bearerAuth: []
