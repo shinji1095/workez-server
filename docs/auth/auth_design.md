@@ -6,7 +6,7 @@
 
 注意：
 - CSVには「認証方式」や「トークン形態」の確定情報が無いため、ここでは候補提示に留め、採用決定は行わない（TBD）。
-- 認証が未確定のため、OpenAPI（docs/api/openapi.yaml）には security 定義を付与していない（ルール準拠）。
+- 認証は未確定だが、実装に合わせて OpenAPI（docs/api/openapi.yaml）には bearerAuth と /auth/token（APIキー発行）を暫定記載している。
 
 ## 2. アクター定義（TBD）
 本ドキュメントでは便宜上、以下のロールを定義する（実ロール体系はTBD）。

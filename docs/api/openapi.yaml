@@ -17,6 +17,8 @@ servers:
 tags:
 - name: admin
   description: 管理ユーザーに関する機能群
+- name: auth
+  description: 認証/トークン発行に関する機能群
 - name: analytics
   description: 収穫数予想や売り上げ予想などの機能群
 - name: defects
@@ -64,6 +66,40 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/token:
+    post:
+      tags:
+      - auth
+      summary: トークン発行
+      description: 'ページ: 認証
+
+        権限（CSV記載）: -
+
+        説明: X-API-KEY（互換で Authorization: Bearer <key> も可）に対応するロールで JWT を発行
+
+        '
+      operationId: createAuthToken
+      security:
+      - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuthTokenRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAuthTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /analytics/harvest/monthly:
@@ -1506,6 +1542,60 @@ components:
             request_id:
               type: string
               description: 'リクエスト追跡ID。サーバーが発行する。推奨: req_<uuid>（例: req_550e8400-e29b-41d4-a716-446655440000）'
+    CreateAuthTokenResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AuthToken'
+        required:
+        - data
+      description: CreateAuthTokenResponse（回答例を反映）
+    CreateAuthTokenRequest:
+      type: object
+      description: トークン発行リクエスト
+      properties:
+        sub:
+          type: string
+          minLength: 1
+          maxLength: 128
+          example: user-1
+          description: JWT の subject（ユーザーID/デバイスIDなど）
+      required:
+      - sub
+      additionalProperties: false
+    AuthToken:
+      type: object
+      description: 発行されたアクセストークン
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          example: 3600
+          description: 有効期限（秒）
+        sub:
+          type: string
+          example: user-1
+        role:
+          type: string
+          enum:
+          - admin
+          - user
+          - device
+          example: user
+      required:
+      - access_token
+      - token_type
+      - expires_in
+      - sub
+      - role
+      additionalProperties: false
     CreateDefectsAmountAddResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -3317,6 +3407,11 @@ components:
         - data
       description: ListAnalyticsRevenueYearlyResponse（回答例を反映）
   securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: 'API key for token issuance. X-API-KEY: <api_key>'
     bearerAuth:
       type: http
       scheme: bearer
