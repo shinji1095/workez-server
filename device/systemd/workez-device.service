@@ -1,0 +1,17 @@
+[Unit]
+Description=workez Raspberry Pi device service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Change this to the user you run on the Raspberry Pi
+User=pi
+WorkingDirectory=/home/pi/device
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/pi/device/.venv/bin/python -m workez_device --config /home/pi/device/config/config.yaml
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
