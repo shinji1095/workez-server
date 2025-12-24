@@ -10,11 +10,14 @@ server:
     token: ""
     header_prefix: "Bearer"
 
-    # Option B: If you implement token issuing endpoints, fill these and set token: ""
-    token_url: ""
-    username: ""
-    password: ""
-    token_json_field: "access"
+    # Option B: Fetch a JWT from the API using an API key
+    token_url: "http://127.0.0.1:8000/auth/token"
+    api_key: ""
+    api_key_header: "X-API-KEY"
+    api_key_prefix: ""
+    sub: "D1"
+    token_json_field: "data.access_token"
+    expires_in_json_field: "data.expires_in"
     refresh_margin_s: 60
 
 device:

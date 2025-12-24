@@ -12,9 +12,12 @@ class JwtConfig:
     token: str
     header_prefix: str = "Bearer"
     token_url: str = ""
-    username: str = ""
-    password: str = ""
-    token_json_field: str = "access"
+    api_key: str = ""
+    api_key_header: str = "X-API-KEY"
+    api_key_prefix: str = ""
+    sub: str = ""
+    token_json_field: str = "data.access_token"
+    expires_in_json_field: str = "data.expires_in"
     refresh_margin_s: int = 60
 
 
@@ -105,9 +108,12 @@ def load_config(path: str | Path) -> AppConfig:
         token=str(jwt.get("token", "")),
         header_prefix=str(jwt.get("header_prefix", "Bearer")),
         token_url=str(jwt.get("token_url", "")),
-        username=str(jwt.get("username", "")),
-        password=str(jwt.get("password", "")),
-        token_json_field=str(jwt.get("token_json_field", "access")),
+        api_key=str(jwt.get("api_key", "")),
+        api_key_header=str(jwt.get("api_key_header", "X-API-KEY")),
+        api_key_prefix=str(jwt.get("api_key_prefix", "")),
+        sub=str(jwt.get("sub", "")),
+        token_json_field=str(jwt.get("token_json_field", "data.access_token")),
+        expires_in_json_field=str(jwt.get("expires_in_json_field", "data.expires_in")),
         refresh_margin_s=int(jwt.get("refresh_margin_s", 60)),
     )
 

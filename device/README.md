@@ -121,7 +121,10 @@ cp config/config.example.yaml config/config.yaml
 最低限ここを環境に合わせて編集します：
 
 - `server.base_url`：Django サーバのベースURL
-- `server.jwt.token`：デバイス用 JWT（Bearer）
+- `server.jwt.token`：デバイス用 JWT（Bearer、固定運用の場合）
+- `server.jwt.token_url`：トークン発行URL（例：`http://<host>:8000/auth/token`）
+- `server.jwt.api_key`：デバイス用 API キー（X-API-KEY）
+- `server.jwt.sub`：JWT の subject（未指定なら `device.device_id` を使用）
 - `serial.port`：UART デバイス（例：`/dev/ttyAMA0` or `/dev/serial0` or `/dev/ttyUSB0`）
 - `device.device_id` / `device.category_id`
 - `sender.send_interval_s`：送信間隔（デフォルト 600 = 10分）

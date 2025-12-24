@@ -53,7 +53,19 @@ class WorkezDeviceApp:
             min_gap_s=cfg.detector.min_gap_s,
         )
 
-        jwt = JwtProvider(token=cfg.server.jwt.token, header_prefix=cfg.server.jwt.header_prefix)
+        jwt = JwtProvider(
+            token=cfg.server.jwt.token,
+            header_prefix=cfg.server.jwt.header_prefix,
+            token_url=cfg.server.jwt.token_url,
+            api_key=cfg.server.jwt.api_key,
+            api_key_header=cfg.server.jwt.api_key_header,
+            api_key_prefix=cfg.server.jwt.api_key_prefix,
+            sub=cfg.server.jwt.sub or cfg.device.device_id,
+            token_json_field=cfg.server.jwt.token_json_field,
+            expires_in_json_field=cfg.server.jwt.expires_in_json_field,
+            refresh_margin_s=cfg.server.jwt.refresh_margin_s,
+            timeout_s=cfg.server.request_timeout_s,
+        )
         sender = HarvestSender(
             base_url=cfg.server.base_url,
             path=cfg.server.harvest_add_path,
