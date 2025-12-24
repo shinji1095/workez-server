@@ -13,7 +13,7 @@
 
 - Device：収穫量/不良品数/バッテリー状態/故障アラーム等を送信するITデバイス
 - Admin：管理機能（ユーザー管理、デバイス管理、目標設定、単価設定、売上/予測など）を扱う管理者
-- Viewer：閲覧系（収穫量推移、デバイス状態の確認等）を行う一般利用者
+- User：閲覧系（収穫量推移、デバイス状態の確認等）を行う一般利用者
 
 ロールと各エンドポイントの許可関係は docs/auth/permission_matrix.csv を正とする。
 
@@ -21,13 +21,13 @@
 CSVには認証方式の確定情報が無いため、以下は候補であり、採用はTBD。
 
 ### 案A：管理者/一般＝JWT、デバイス＝API Key
-- Admin/Viewer：Authorization: Bearer <JWT>
+- Admin/User：Authorization: Bearer <JWT>
 - Device：X-API-Key: <device_api_key>（または Authorization: ApiKey <...>）
 - 利点：実装・運用が比較的単純。デバイスは鍵のローテーションが容易。
 - 懸念：デバイスキー漏洩時の影響範囲（レート制限、失効手段、端末紐付けが必要）。JWTの失効戦略はTBD。
 
 ### 案B：管理者/一般＝セッション（Cookie）、デバイス＝署名付きトークン（短命）
-- Admin/Viewer：HTTPS + HttpOnly Cookie（セッションID）
+- Admin/User：HTTPS + HttpOnly Cookie（セッションID）
 - Device：短命トークン（署名付きJWT等）を発行し定期更新（発行/更新APIはTBD）
 - 利点：Web側の運用が分かりやすい。デバイス側は短命トークンでリスク低減可能。
 - 懸念：トークン発行/更新の仕組みが追加で必要。デバイスの初期登録・鍵配布フローはTBD。
@@ -55,7 +55,7 @@ CSVには認証方式の確定情報が無いため、以下は候補であり�
 ## 7. 未決事項（TBD一覧）
 - 認証方式の採用決定（案A/案B/その他）
 - トークン/キーの配布・更新・失効フロー
-- ロール体系（Admin/Viewerの階層関係が「≧」で示唆されるが、厳密仕様はTBD）
+- ロール体系（Admin/Userの階層関係が「≧」で示唆されるが、厳密仕様はTBD）
 - 401/403の使い分け、エラーコード体系（ErrorResponse.code の定義）
 - request_id の生成方法とログ相関
 - レート制限の方式/閾値

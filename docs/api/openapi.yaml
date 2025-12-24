@@ -2022,8 +2022,8 @@ components:
           type: string
           enum:
           - admin
-          - viewer
-          example: viewer
+          - user
+          example: user
         is_active:
           type: boolean
           example: true
@@ -2177,8 +2177,8 @@ components:
           type: string
           enum:
           - admin
-          - viewer
-          example: viewer
+          - user
+          example: user
         is_active:
           type: boolean
           example: true
