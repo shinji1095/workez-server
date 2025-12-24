@@ -3,6 +3,7 @@ from django.urls import path, include  # type: ignore
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
+    path("", include("apps.auth.urls")),
     path("", include("apps.users.urls")),
     path("", include("apps.admin.urls")),
     path("", include("apps.devices.urls")),

@@ -12,6 +12,16 @@ from rest_framework.exceptions import AuthenticationFailed  # type: ignore
 DEFAULT_ALG = "HS256"
 
 
+def _jwt_signing_key() -> str:
+    key = getattr(settings, "JWT_SIGNING_KEY", "")
+    return key or settings.SECRET_KEY
+
+
+def _jwt_algorithm() -> str:
+    alg = getattr(settings, "JWT_ALGORITHM", "")
+    return alg or DEFAULT_ALG
+
+
 @dataclass(frozen=True)
 class JwtUser:
     sub: str
@@ -31,7 +41,7 @@ def issue_jwt(*, sub: str, role: str, lifetime_seconds: int = 3600) -> str:
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(seconds=lifetime_seconds)).timestamp()),
     }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm=DEFAULT_ALG)
+    token = jwt.encode(payload, _jwt_signing_key(), algorithm=_jwt_algorithm())
     if isinstance(token, bytes):
         token = token.decode("utf-8")
     return token
@@ -41,7 +51,6 @@ class JwtAuthentication(BaseAuthentication):
     """Simple Bearer JWT authentication."""
 
     keyword = "Bearer"
-    alg = DEFAULT_ALG
 
     def authenticate(self, request) -> Optional[Tuple[JwtUser, Any]]:
         header = request.headers.get("Authorization") or ""
@@ -54,7 +63,7 @@ class JwtAuthentication(BaseAuthentication):
 
         token = parts[1]
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[self.alg])
+            payload = jwt.decode(token, _jwt_signing_key(), algorithms=[_jwt_algorithm()])
         except Exception as e:
             # Convert any decode/validation error to a proper 401.
             raise AuthenticationFailed("Invalid token") from e

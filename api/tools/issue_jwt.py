@@ -1,6 +1,6 @@
 """Issue a JWT for local development / E2E.
 
-This project uses a lightweight JWT auth implementation (no login endpoint).
+This project uses a lightweight JWT auth implementation (see /auth/token).
 Tokens are signed with settings.JWT_SIGNING_KEY (default: SECRET_KEY).
 
 Usage:

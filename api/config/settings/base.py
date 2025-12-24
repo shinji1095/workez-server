@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     # Project apps
+    "apps.auth.apps.AuthConfig",
     "apps.users.apps.UsersConfig",
     "apps.admin.apps.AdminApiConfig",
     "apps.devices.apps.DevicesConfig",
@@ -92,6 +93,11 @@ REST_FRAMEWORK = {
 JWT_SIGNING_KEY = env("JWT_SIGNING_KEY", default=SECRET_KEY)
 JWT_ALGORITHM = env("JWT_ALGORITHM", default="HS256")
 JWT_ACCESS_TOKEN_LIFETIME_SECONDS = env.int("JWT_ACCESS_TOKEN_LIFETIME_SECONDS", default=3600)
+
+# Token issuance API keys (role-mapped)
+ADMIN_API_KEY = env("ADMIN_API_KEY", default="")
+USER_API_KEY = env("USER_API_KEY", default="")
+DEVICE_API_KEY = env("DEVICE_API_KEY", default="")
 
 # Pagination defaults (OpenAPI parameters page/page_size)
 DEFAULT_PAGE_SIZE = env.int("DEFAULT_PAGE_SIZE", default=50)

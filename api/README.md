@@ -31,13 +31,19 @@ python manage.py runserver 0.0.0.0:8000
 
 ## 2. 認証（暫定実装）
 
-CSVの「一般≧/管理者≧」をコードで担保するために、OpenAPI未記載の **API Key 認証**を暫定導入しています。
+JWT を利用します。まず API キーでトークンを発行し、以降は Bearer JWT を使います。
 
-- ヘッダ: `X-API-KEY: <key>` または `Authorization: Bearer <key>`
+### トークン発行
+- エンドポイント: `POST /auth/token`
+- ヘッダ: `X-API-KEY: <key>`（互換用に `Authorization: Bearer <key>` も許可）
+- ボディ: `{"sub": "<subject>"}`（例: `admin-1` / `user-1` / `device-1`）
 - ロール:
   - `ADMIN_API_KEY` → admin
   - `USER_API_KEY` → user（一般）
   - `DEVICE_API_KEY` → device
+
+### API 呼び出し
+- ヘッダ: `Authorization: Bearer <access_token>`
 
 
 ## 3. TDD 実行
