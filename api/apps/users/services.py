@@ -9,7 +9,7 @@ def create_user(data: Dict[str, Any]) -> User:
     user = User.objects.create(
         email=data["email"],
         name=data["name"],
-        role=data.get("role", User.ROLE_VIEWER),
+        role=data.get("role", User.ROLE_USER),
         is_active=data.get("is_active", True),
     )
     return user

@@ -1,26 +1,25 @@
-from django.urls import path  # type: ignore
+from django.urls import path
+
 from .views import (
-    HarvestAmountAddView,
-    HarvestAmountDailyView,
-    HarvestAmountWeeklyView,
-    HarvestAmountMonthlyView,
-    HarvestAmountDailyCategoryView,
-    HarvestAmountWeeklyCategoryView,
-    HarvestAmountMonthlyCategoryView,
-    HarvestTargetDailyView,
-    HarvestTargetWeeklyView,
-    HarvestTargetMonthlyView,
+    CreateHarvestAmountAddView,
+    ListHarvestDailyCategoryView,
+    ListHarvestDailyView,
+    ListHarvestMonthlyCategoryView,
+    ListHarvestMonthlyView,
+    ListHarvestWeeklyCategoryView,
+    ListHarvestWeeklyView,
 )
 
 urlpatterns = [
-    path("harvest/amount/add", HarvestAmountAddView.as_view(), name="harvest-amount-add"),
-    path("harvest/amount/daily", HarvestAmountDailyView.as_view(), name="harvest-amount-daily"),
-    path("harvest/amount/weekly", HarvestAmountWeeklyView.as_view(), name="harvest-amount-weekly"),
-    path("harvest/amount/monthly", HarvestAmountMonthlyView.as_view(), name="harvest-amount-monthly"),
-    path("harvest/amount/daily/category/<str:categoryId>", HarvestAmountDailyCategoryView.as_view(), name="harvest-amount-daily-category"),
-    path("harvest/amount/weekly/category/<str:categoryId>", HarvestAmountWeeklyCategoryView.as_view(), name="harvest-amount-weekly-category"),
-    path("harvest/amount/monthly/category/<str:categoryId>", HarvestAmountMonthlyCategoryView.as_view(), name="harvest-amount-monthly-category"),
-    path("harvest/target/daily", HarvestTargetDailyView.as_view(), name="harvest-target-daily"),
-    path("harvest/target/weekly", HarvestTargetWeeklyView.as_view(), name="harvest-target-weekly"),
-    path("harvest/target/monthly", HarvestTargetMonthlyView.as_view(), name="harvest-target-monthly"),
+    path("harvest/amount/add", CreateHarvestAmountAddView.as_view()),
+
+    path("harvest/amount/daily", ListHarvestDailyView.as_view()),
+    path("harvest/amount/daily/category/<str:category_id>", ListHarvestDailyCategoryView.as_view()),
+
+    path("harvest/amount/weekly", ListHarvestWeeklyView.as_view()),
+    # PATCH weekly override is also handled by this view for admin
+    path("harvest/amount/weekly/category/<str:category_id>", ListHarvestWeeklyCategoryView.as_view()),
+
+    path("harvest/amount/monthly", ListHarvestMonthlyView.as_view()),
+    path("harvest/amount/monthly/category/<str:category_id>", ListHarvestMonthlyCategoryView.as_view()),
 ]

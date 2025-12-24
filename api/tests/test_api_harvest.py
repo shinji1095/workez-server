@@ -254,7 +254,7 @@ def test_create_harvest_amount_add_count_boundary_values(device_client, admin_cl
 
 
 # -----------------------------------------------------------------------------
-# GET /harvest/amount/daily (viewer/admin; device forbidden)
+# GET /harvest/amount/daily (user/admin; device forbidden)
 # -----------------------------------------------------------------------------
 def test_list_harvest_amount_daily_success_contains_aggregate(device_client, user_client, admin_client):
     category_id = "C1"
@@ -331,7 +331,7 @@ def test_list_harvest_amount_daily_pagination_boundaries(user_client, qs):
 
 
 # -----------------------------------------------------------------------------
-# GET /harvest/amount/daily/category/{categoryId} (viewer/admin; device forbidden)
+# GET /harvest/amount/daily/category/{categoryId} (user/admin; device forbidden)
 # -----------------------------------------------------------------------------
 def test_retrieve_harvest_amount_daily_category_success(device_client, user_client, admin_client):
     category_id = "C1"

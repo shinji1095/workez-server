@@ -14,7 +14,28 @@ class RoleDeviceOrAdmin(BasePermission):
         user = getattr(request, "user", None)
         if not user or not getattr(user, "is_authenticated", False):
             raise NotAuthenticated()
-        v = _role_value(request)
+        v = _role_value(user)
         if v in (ROLE_ORDER["device"], ROLE_ORDER["admin"]):
+            return True
+        raise PermissionDenied()
+
+
+class RoleDeviceOnly(BasePermission):
+    """Allow `device` role only.
+
+    - Returns 401 if unauthenticated, 403 if authenticated but not device.
+    """
+
+    def has_permission(self, request: Request, view) -> bool:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            raise NotAuthenticated()
+        v = _role_value(user)
+        # DEBUG: print role info to help diagnose permission evaluation during tests
+        try:
+            print(f"[RoleDeviceOnly] user={getattr(user,'sub', None)} role={getattr(user,'role', None)} v={v}")
+        except Exception:
+            print("[RoleDeviceOnly] cannot print user info")
+        if v == ROLE_ORDER["device"]:
             return True
         raise PermissionDenied()

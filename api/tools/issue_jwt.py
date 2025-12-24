@@ -19,7 +19,7 @@ import django
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--role", required=True, choices=["admin", "viewer", "device"])
+    parser.add_argument("--role", required=True, choices=["admin", "user", "device"])
     parser.add_argument("--sub", required=True)
     parser.add_argument("--ttl", type=int, default=3600)
     args = parser.parse_args()

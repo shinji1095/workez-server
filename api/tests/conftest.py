@@ -22,7 +22,7 @@ def admin_client():
 @pytest.fixture
 def user_client():
     client = APIClient()
-    token = issue_jwt(sub="user-1", role="viewer")
+    token = issue_jwt(sub="user-1", role="user")
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client
 

@@ -1,6 +1,6 @@
 {
   "email": "test_user_${RUN_ID}@example.com",
   "name": "Test User",
-  "role": "viewer",
+  "role": "user",
   "is_active": true
 }

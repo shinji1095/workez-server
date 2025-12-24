@@ -9,7 +9,24 @@ from apps.harvest.models import HarvestAggregateOverride
 pytestmark = pytest.mark.django_db
 
 
+def _payload(resp):
+    if hasattr(resp, "data"):
+        return resp.data
+    return resp.json()
+
+
+def _prepare_price(admin_client, category_id: str, unit_price_yen: int = 100, effective_from: str = "2025-01-01"):
+    resp = admin_client.post(
+        f"/prices/category/{category_id}",
+        {"unit_price_yen": unit_price_yen, "effective_from": effective_from},
+        format="json",
+    )
+    assert resp.status_code in (200, 201), _payload(resp)
+
+
 def test_weekly_override_period_is_determined_by_date_param(admin_client, device_client, user_client):
+    _prepare_price(admin_client, "C1")
+
     # Arrange: add at least one record so weekly list is non-empty
     occurred_at = timezone.now().isoformat()
     device_client.post(
