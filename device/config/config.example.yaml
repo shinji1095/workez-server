@@ -1,0 +1,57 @@
+# Raspberry Pi device config
+server:
+  # Example: http://192.168.1.10/api  (if your reverse-proxy exposes /api)
+  base_url: "http://127.0.0.1:8000"
+  harvest_add_path: "/harvest/amount/add"
+  request_timeout_s: 5.0
+
+  jwt:
+    # Option A: Put a pre-provisioned JWT here
+    token: ""
+    header_prefix: "Bearer"
+
+    # Option B: If you implement token issuing endpoints, fill these and set token: ""
+    token_url: ""
+    username: ""
+    password: ""
+    token_json_field: "access"
+    refresh_margin_s: 60
+
+device:
+  device_id: "D1"
+  category_id: "C1"
+
+serial:
+  port: "/dev/ttyUSB0"
+  baudrate: 115200
+  read_timeout_s: 1.0
+  reconnect_interval_s: 2.0
+
+detector:
+  # The detector uses hysteresis: ON threshold to enter "active",
+  # OFF threshold to return to "idle". Values are in millivolts.
+  threshold_on_mv: 1600
+  threshold_off_mv: 1400
+
+  # simple smoothing
+  ema_alpha: 0.3
+
+  # noise rejection
+  consecutive_on: 2
+  consecutive_off: 2
+  min_active_duration_s: 0.05
+
+  # objects pass one-by-one, at least this gap
+  min_gap_s: 0.5
+
+sender:
+  send_interval_s: 600  # 10 minutes
+
+state:
+  dir: "state"
+  file: "state.json"
+
+logging:
+  dir: "log"
+  file_level: "INFO"
+  console_level: "INFO"
