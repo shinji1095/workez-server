@@ -24,14 +24,25 @@ PY
   fi
 }
 
+get_env_value() {
+  local path="$1"
+  local key="$2"
+  awk -F= -v k="$key" '$1 == k {print substr($0, index($0, "=") + 1); exit}' "$path"
+}
+
+append_env() {
+  local path="$1"
+  local key="$2"
+  local value="$3"
+  if grep -q "^${key}=" "$path"; then
+    return 0
+  fi
+  echo "${key}=${value}" >>"$path"
+}
+
 write_env() {
   local path="$1"
   local mode="$2" # local | production
-
-  if [[ -f "$path" && "$FORCE" -ne 1 ]]; then
-    echo "Skip: $path already exists (use --force to overwrite)."
-    return 0
-  fi
 
   local pg_db="app"
   local pg_user="app"
@@ -51,7 +62,42 @@ write_env() {
     allowed_hosts="your-ddns.example.com"
   fi
 
+  local admin_api_key user_api_key device_api_key
+  admin_api_key="$(rand 32)"
+  user_api_key="$(rand 32)"
+  device_api_key="$(rand 32)"
+
   umask 077
+  if [[ -f "$path" && "$FORCE" -ne 1 ]]; then
+    local existing_secret existing_debug existing_allowed
+    existing_secret="$(get_env_value "$path" "SECRET_KEY")"
+    if [[ -z "$existing_secret" ]]; then
+      existing_secret="$(get_env_value "$path" "DJANGO_SECRET_KEY")"
+    fi
+    secret_key="${existing_secret:-$secret_key}"
+
+    existing_debug="$(get_env_value "$path" "DEBUG")"
+    if [[ -z "$existing_debug" ]]; then
+      existing_debug="$(get_env_value "$path" "DJANGO_DEBUG")"
+    fi
+    debug="${existing_debug:-$debug}"
+
+    existing_allowed="$(get_env_value "$path" "ALLOWED_HOSTS")"
+    if [[ -z "$existing_allowed" ]]; then
+      existing_allowed="$(get_env_value "$path" "DJANGO_ALLOWED_HOSTS")"
+    fi
+    allowed_hosts="${existing_allowed:-$allowed_hosts}"
+
+    append_env "$path" "SECRET_KEY" "$secret_key"
+    append_env "$path" "DEBUG" "$debug"
+    append_env "$path" "ALLOWED_HOSTS" "$allowed_hosts"
+    append_env "$path" "ADMIN_API_KEY" "$admin_api_key"
+    append_env "$path" "USER_API_KEY" "$user_api_key"
+    append_env "$path" "DEVICE_API_KEY" "$device_api_key"
+    echo "Updated: $path"
+    return 0
+  fi
+
   cat >"$path" <<EOF
 # ============================================================
 # Auto-generated: $path
@@ -63,9 +109,17 @@ POSTGRES_USER=${pg_user}
 POSTGRES_PASSWORD=${pg_pass}
 
 # ---- Django ----
+SECRET_KEY=${secret_key}
+DEBUG=${debug}
+ALLOWED_HOSTS=${allowed_hosts}
 DJANGO_SECRET_KEY=${secret_key}
 DJANGO_DEBUG=${debug}
 DJANGO_ALLOWED_HOSTS=${allowed_hosts}
+
+# ---- Token issuance API keys ----
+ADMIN_API_KEY=${admin_api_key}
+USER_API_KEY=${user_api_key}
+DEVICE_API_KEY=${device_api_key}
 
 # ---- Gunicorn (used in compose command) ----
 GUNICORN_WORKERS=3
@@ -80,4 +134,4 @@ write_env ".env.local" "local"
 write_env ".env.production" "production"
 
 echo "Done."
-echo "Note: .env.production の DJANGO_ALLOWED_HOSTS は運用DDNS名に必ず置き換えてください。"
+echo "Note: .env.production の ALLOWED_HOSTS（/ DJANGO_ALLOWED_HOSTS）は運用DDNS名に必ず置き換えてください。"
