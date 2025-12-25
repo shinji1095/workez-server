@@ -1,66 +1,127 @@
 import './App.css'
 
 const navItems = [
-  { label: 'Dashboard', href: '#dashboard' },
-  { label: 'User Management', href: '#users' },
-  { label: 'Devices', href: '#devices' },
-  { label: 'Harvest Trends', href: '#trends' },
-  { label: 'Revenue Analytics', href: '#revenue' },
-  { label: 'Defect Analytics', href: '#defects' },
-  { label: 'Target Settings', href: '#targets' },
-  { label: 'Profile', href: '#profile' },
+  { label: 'ダッシュボード', href: '#dashboard' },
+  { label: 'ユーザー管理', href: '#users' },
+  { label: 'デバイス', href: '#devices' },
+  { label: '収穫トレンド', href: '#trends' },
+  { label: '売上分析', href: '#revenue' },
+  { label: '不良分析', href: '#defects' },
+  { label: '目標設定', href: '#targets' },
+  { label: 'プロフィール', href: '#profile' },
 ]
 
 const stats = [
   {
-    label: 'Total Devices',
+    label: 'デバイス総数',
     value: '128',
-    meta: '121 online, 7 offline',
+    meta: 'オンライン121 / オフライン7',
     badge: '+6',
     tone: 'ok',
   },
   {
-    label: "Today's Harvest",
+    label: '本日の収穫量',
     value: '32,480 kg',
-    meta: 'Target: 30,000 kg',
+    meta: '目標: 30,000 kg',
     badge: '+8%',
     tone: 'ok',
   },
   {
-    label: 'Active Alarms',
+    label: 'アクティブアラーム',
     value: '12',
-    meta: '3 critical, 9 warning',
-    badge: 'Watch',
+    meta: '重大3 / 警告9',
+    badge: '注意',
     tone: 'danger',
   },
 ]
 
 const quickAccess = [
-  { label: 'Devices', detail: 'Register and monitor devices' },
-  { label: 'Harvest Trends', detail: 'Daily, weekly, monthly views' },
-  { label: 'Revenue Analytics', detail: 'Forecasts and pricing' },
-  { label: 'Defect Analytics', detail: 'Counts and ratios' },
+  { label: 'デバイス', detail: 'デバイスの登録と監視' },
+  { label: '収穫トレンド', detail: '日次・週次・月次の推移' },
+  { label: '売上分析', detail: '予測と価格' },
+  { label: '不良分析', detail: '件数と比率' },
 ]
 
 const users = [
-  { id: 'U001', name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-  { id: 'U002', name: 'Jane Smith', email: 'jane@example.com', role: 'Manager' },
-  { id: 'U003', name: 'Bob Wilson', email: 'bob@example.com', role: 'Operator' },
-  { id: 'U004', name: 'Alice Brown', email: 'alice@example.com', role: 'Viewer' },
+  { id: 'U001', name: '山田 太郎', email: 'taro@example.com', role: '管理者' },
+  { id: 'U002', name: '佐藤 花子', email: 'hanako@example.com', role: 'マネージャー' },
+  { id: 'U003', name: '鈴木 一郎', email: 'ichiro@example.com', role: 'オペレーター' },
+  { id: 'U004', name: '高橋 美咲', email: 'misaki@example.com', role: '閲覧者' },
 ]
 
 const devices = [
-  { id: 'DEV001', battery: '85%', alarm: 'Normal', tone: 'ok' },
-  { id: 'DEV002', battery: '62%', alarm: 'Warning', tone: 'warning' },
-  { id: 'DEV003', battery: '94%', alarm: 'Normal', tone: 'ok' },
-  { id: 'DEV004', battery: '28%', alarm: 'Critical', tone: 'danger' },
-  { id: 'DEV005', battery: '71%', alarm: 'Normal', tone: 'ok' },
+  { id: 'DEV001', battery: '85%', alarm: '正常', tone: 'ok' },
+  { id: 'DEV002', battery: '62%', alarm: '警告', tone: 'warning' },
+  { id: 'DEV003', battery: '94%', alarm: '正常', tone: 'ok' },
+  { id: 'DEV004', battery: '28%', alarm: '重大', tone: 'danger' },
+  { id: 'DEV005', battery: '71%', alarm: '正常', tone: 'ok' },
 ]
 
 const pricing = [
-  { category: 'Large', price: '$5.00' },
-  { category: 'Medium', price: '$3.50' },
-  { category: 'Small', price: '$2.00' },
+  { category: '大', price: '$5.00' },
+  { category: '中', price: '$3.50' },
+  { category: '小', price: '$2.00' },
+]
+
+const buildConicGradient = (slices: { value: number; color: string }[]) => {
+  let total = 0
+  const segments = slices.map((slice) => {
+    const start = total
+    total += slice.value
+    return `${slice.color} ${start}% ${total}%`
+  })
+  return `conic-gradient(${segments.join(', ')})`
+}
+
+const harvestAmount = [
+  { label: '月', value: 58, display: '28k' },
+  { label: '火', value: 76, display: '33k' },
+  { label: '水', value: 62, display: '29k' },
+  { label: '木', value: 88, display: '36k' },
+  { label: '金', value: 70, display: '31k' },
+  { label: '土', value: 94, display: '39k' },
+  { label: '日', value: 66, display: '30k' },
+]
+
+const revenueSummary = [
+  { label: '1月', value: 62, display: '$112k' },
+  { label: '2月', value: 54, display: '$98k' },
+  { label: '3月', value: 70, display: '$124k' },
+  { label: '4月', value: 60, display: '$110k' },
+  { label: '5月', value: 82, display: '$138k' },
+  { label: '6月', value: 68, display: '$121k' },
+]
+
+const defectCounts = [
+  { label: '大', value: 100, count: 48 },
+  { label: '中', value: 76, count: 36 },
+  { label: '小', value: 54, count: 25 },
+  { label: 'その他', value: 32, count: 14 },
+]
+
+const defectRatio = [
+  { label: '大', value: 42, color: '#4f8a5b' },
+  { label: '中', value: 28, color: '#8bb174' },
+  { label: '小', value: 18, color: '#f3c66f' },
+  { label: 'その他', value: 12, color: '#f1a45b' },
+]
+
+const defectRatioGradient = buildConicGradient(defectRatio)
+
+const monthlyRevenue = [
+  { label: '1週', value: 56, display: '$24k' },
+  { label: '2週', value: 78, display: '$33k' },
+  { label: '3週', value: 68, display: '$29k' },
+  { label: '4週', value: 86, display: '$37k' },
+  { label: '5週', value: 62, display: '$27k' },
+]
+
+const defectWeekly = [
+  { label: '1週', value: 58, display: '18' },
+  { label: '2週', value: 74, display: '24' },
+  { label: '3週', value: 64, display: '21' },
+  { label: '4週', value: 82, display: '27' },
+  { label: '5週', value: 48, display: '16' },
 ]
 
 function App() {
@@ -70,16 +131,16 @@ function App() {
         <div className="brand">
           <div className="brand-mark">WH</div>
           <div>
-            <p className="brand-title">IoT Harvest Management</p>
-            <p className="brand-subtitle">Operations Console</p>
+            <p className="brand-title">IoT 収穫管理</p>
+            <p className="brand-subtitle">運用コンソール</p>
           </div>
         </div>
         <div className="topbar-actions">
           <button className="btn ghost" type="button">
-            Profile
+            プロフィール
           </button>
           <button className="btn ghost" type="button">
-            Logout
+            ログアウト
           </button>
         </div>
       </header>
@@ -87,8 +148,8 @@ function App() {
       <div className="page">
         <aside className="sidebar">
           <div className="sidebar-header">
-            <p className="sidebar-title">Navigation</p>
-            <span className="pill ok">Live</span>
+            <p className="sidebar-title">ナビゲーション</p>
+            <span className="pill ok">稼働中</span>
           </div>
           <nav className="nav">
             {navItems.map((item, index) => (
@@ -98,24 +159,24 @@ function App() {
                 href={item.href}
               >
                 <span className="nav-title">{item.label}</span>
-                <span className="nav-meta">Operations</span>
+                <span className="nav-meta">運用</span>
               </a>
             ))}
           </nav>
           <div className="sidebar-card">
-            <p className="card-title">System Status</p>
+            <p className="card-title">システム状況</p>
             <div className="status-row">
-              <span>Gateway</span>
-              <span className="pill ok">Online</span>
+              <span>ゲートウェイ</span>
+              <span className="pill ok">オンライン</span>
             </div>
             <div className="status-row">
-              <span>Storage</span>
+              <span>ストレージ</span>
               <span className="pill warning">78%</span>
             </div>
             <div className="progress">
               <span className="progress-bar" style={{ width: '78%' }} />
             </div>
-            <p className="muted">78% capacity used</p>
+            <p className="muted">使用容量 78%</p>
           </div>
         </aside>
 
@@ -123,16 +184,16 @@ function App() {
           <section className="section" id="dashboard">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Overview</p>
-                <h1 className="section-title">Dashboard</h1>
-                <p className="note">Last sync: 5 minutes ago</p>
+                <p className="section-kicker">概要</p>
+                <h1 className="section-title">ダッシュボード</h1>
+                <p className="note">最終同期: 5分前</p>
               </div>
               <div className="section-actions">
                 <button className="btn outline" type="button">
-                  Export
+                  エクスポート
                 </button>
                 <button className="btn primary" type="button">
-                  Create Report
+                  レポート作成
                 </button>
               </div>
             </div>
@@ -153,22 +214,71 @@ function App() {
             <div className="chart-grid">
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Harvest Summary</h3>
-                  <span className="pill neutral">Daily</span>
+                  <h3>収穫サマリー</h3>
+                  <span className="pill neutral">日次</span>
                 </div>
-                <div className="chart-placeholder large">Harvest Summary Chart</div>
+                <div className="chart-surface large">
+                  <svg
+                    className="chart-svg"
+                    viewBox="0 0 260 120"
+                    role="img"
+                    aria-label="収穫サマリーの折れ線グラフ"
+                  >
+                    <path
+                      className="chart-area"
+                      d="M0 86 L30 70 L60 76 L90 54 L120 62 L150 46 L180 52 L210 32 L240 38 L260 28 L260 120 L0 120 Z"
+                    />
+                    <polyline
+                      className="chart-line"
+                      points="0,86 30,70 60,76 90,54 120,62 150,46 180,52 210,32 240,38 260,28"
+                    />
+                    <polyline
+                      className="chart-line muted"
+                      points="0,98 30,88 60,92 90,78 120,84 150,70 180,74 210,60 240,64 260,56"
+                    />
+                  </svg>
+                  <div className="chart-foot">
+                    <div className="chart-metrics">
+                      <div className="metric">
+                        <p className="metric-label">日平均</p>
+                        <p className="metric-value">31.2k kg</p>
+                      </div>
+                      <div className="metric">
+                        <p className="metric-label">最高日</p>
+                        <p className="metric-value">39.1k kg</p>
+                      </div>
+                    </div>
+                    <span className="pill ok">+9%</span>
+                  </div>
+                </div>
               </div>
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Revenue Summary</h3>
-                  <span className="pill neutral">Monthly</span>
+                  <h3>売上サマリー</h3>
+                  <span className="pill neutral">月次</span>
                 </div>
-                <div className="chart-placeholder large">Revenue Summary Chart</div>
+                <div className="chart-surface large">
+                  <div className="bar-chart compact">
+                    {revenueSummary.map((item) => (
+                      <div className="bar-item" key={item.label}>
+                        <span className="bar-value">{item.display}</span>
+                        <div className="bar-track">
+                          <span className="bar-fill" style={{ height: `${item.value}%` }} />
+                        </div>
+                        <span className="bar-label">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="chart-foot">
+                    <span className="muted">平均売上: $117k</span>
+                    <span className="pill ok">前月比 +12%</span>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="quick-access">
-              <p className="block-title">Quick Access</p>
+              <p className="block-title">クイックアクセス</p>
               <div className="quick-grid">
                 {quickAccess.map((item) => (
                   <button className="quick-button" key={item.label} type="button">
@@ -183,23 +293,23 @@ function App() {
           <section className="section" id="users">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Administration</p>
-                <h2 className="section-title">User Management</h2>
-                <p className="note">Admin only - role change and delete actions</p>
+                <p className="section-kicker">管理</p>
+                <h2 className="section-title">ユーザー管理</h2>
+                <p className="note">管理者のみ - 役割変更と削除が可能</p>
               </div>
               <button className="btn primary" type="button">
-                Add User
+                ユーザー追加
               </button>
             </div>
             <div className="table-wrapper">
               <table className="table">
                 <thead>
                   <tr>
-                    <th scope="col">User ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Role</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">ユーザーID</th>
+                    <th scope="col">名前</th>
+                    <th scope="col">メール</th>
+                    <th scope="col">権限</th>
+                    <th scope="col">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -212,10 +322,10 @@ function App() {
                       <td>
                         <div className="table-actions">
                           <button className="btn ghost" type="button">
-                            Edit Role
+                            権限変更
                           </button>
                           <button className="btn danger" type="button">
-                            Delete
+                            削除
                           </button>
                         </div>
                       </td>
@@ -229,22 +339,22 @@ function App() {
           <section className="section" id="devices">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Fleet</p>
-                <h2 className="section-title">Devices</h2>
-                <p className="note">Admin only - register device and delete actions</p>
+                <p className="section-kicker">フリート</p>
+                <h2 className="section-title">デバイス</h2>
+                <p className="note">管理者のみ - 登録と削除が可能</p>
               </div>
               <button className="btn primary" type="button">
-                Register Device
+                デバイス登録
               </button>
             </div>
             <div className="table-wrapper">
               <table className="table">
                 <thead>
                   <tr>
-                    <th scope="col">Device ID</th>
-                    <th scope="col">Battery Status</th>
-                    <th scope="col">Alarm Status</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">デバイスID</th>
+                    <th scope="col">バッテリー</th>
+                    <th scope="col">アラーム</th>
+                    <th scope="col">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -258,10 +368,10 @@ function App() {
                       <td>
                         <div className="table-actions">
                           <button className="btn ghost" type="button">
-                            View Alarm Details
+                            アラーム詳細
                           </button>
                           <button className="btn danger" type="button">
-                            Delete
+                            削除
                           </button>
                         </div>
                       </td>
@@ -275,62 +385,115 @@ function App() {
           <section className="section" id="trends">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Analytics</p>
-                <h2 className="section-title">Harvest Trends</h2>
-                <p className="note">Category values editable by Admin</p>
+                <p className="section-kicker">分析</p>
+                <h2 className="section-title">収穫トレンド</h2>
+                <p className="note">カテゴリ値は管理者が編集可能</p>
               </div>
             </div>
             <div className="block">
-              <p className="block-title">Period</p>
+              <p className="block-title">期間</p>
               <div className="tab-list">
                 <button className="tab active" type="button">
-                  Daily
+                  日次
                 </button>
                 <button className="tab" type="button">
-                  Weekly
+                  週次
                 </button>
                 <button className="tab" type="button">
-                  Monthly
+                  月次
                 </button>
               </div>
             </div>
             <div className="chart-card">
               <div className="card-header">
-                <h3>Harvest Amount</h3>
+                <h3>収穫量</h3>
               </div>
-              <div className="chart-placeholder xl">Harvest Amount Chart</div>
+              <div className="chart-surface xl">
+                <div className="bar-chart tall">
+                  {harvestAmount.map((item) => (
+                    <div className="bar-item" key={item.label}>
+                      <span className="bar-value">{item.display}</span>
+                      <div className="bar-track">
+                        <span className="bar-fill" style={{ height: `${item.value}%` }} />
+                      </div>
+                      <span className="bar-label">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="chart-foot">
+                  <div className="chart-metrics">
+                    <div className="metric">
+                      <p className="metric-label">目標</p>
+                      <p className="metric-value">210k kg</p>
+                    </div>
+                    <div className="metric">
+                      <p className="metric-label">実績</p>
+                      <p className="metric-value">224k kg</p>
+                    </div>
+                  </div>
+                  <span className="pill ok">+6%</span>
+                </div>
+              </div>
             </div>
             <div className="block">
-              <p className="block-title">Category / Size</p>
+              <p className="block-title">カテゴリ / サイズ</p>
               <div className="filter-list">
                 <button className="filter active" type="button">
-                  All
+                  全て
                 </button>
                 <button className="filter" type="button">
-                  Large
+                  大
                 </button>
                 <button className="filter" type="button">
-                  Medium
+                  中
                 </button>
                 <button className="filter" type="button">
-                  Small
+                  小
                 </button>
               </div>
             </div>
             <div className="chart-grid">
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Defect Count</h3>
-                  <span className="pill neutral">Weekly</span>
+                  <h3>不良数</h3>
+                  <span className="pill neutral">週次</span>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <div className="bar-list">
+                    {defectCounts.map((item) => (
+                      <div className="bar-row" key={item.label}>
+                        <span className="bar-label">{item.label}</span>
+                        <div className="bar-line">
+                          <span className="bar-progress" style={{ width: `${item.value}%` }} />
+                        </div>
+                        <span className="bar-value">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Defect Ratio</h3>
-                  <span className="pill neutral">Weekly</span>
+                  <h3>不良率</h3>
+                  <span className="pill neutral">週次</span>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <div className="pie-layout">
+                    <div className="pie-chart" style={{ background: defectRatioGradient }}>
+                      <div className="pie-hole" />
+                      <span className="pie-center">比率</span>
+                    </div>
+                    <ul className="chart-legend">
+                      {defectRatio.map((item) => (
+                        <li className="legend-item" key={item.label}>
+                          <span className="legend-swatch" style={{ background: item.color }} />
+                          <span>{item.label}</span>
+                          <span className="legend-value">{item.value}%</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -338,47 +501,122 @@ function App() {
           <section className="section" id="revenue">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Financials</p>
-                <h2 className="section-title">Revenue Analytics</h2>
-                <p className="note">Forecasts and price management</p>
+                <p className="section-kicker">収益</p>
+                <h2 className="section-title">売上分析</h2>
+                <p className="note">予測と価格管理</p>
               </div>
             </div>
             <div className="chart-grid triple">
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Monthly Harvest Forecast</h3>
+                  <h3>月次収穫予測</h3>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <svg
+                    className="chart-svg"
+                    viewBox="0 0 260 120"
+                    role="img"
+                    aria-label="月次収穫予測"
+                  >
+                    <path
+                      className="chart-area"
+                      d="M0 90 L40 78 L80 66 L120 58 L160 46 L200 38 L240 30 L260 26 L260 120 L0 120 Z"
+                    />
+                    <polyline
+                      className="chart-line"
+                      points="0,90 40,78 80,66 120,58 160,46"
+                    />
+                    <polyline
+                      className="chart-line dashed"
+                      points="160,46 200,38 240,30 260,26"
+                    />
+                  </svg>
+                  <div className="chart-foot">
+                    <div className="chart-metrics">
+                      <div className="metric">
+                        <p className="metric-label">予測</p>
+                        <p className="metric-value">+14%</p>
+                      </div>
+                      <div className="metric">
+                        <p className="metric-label">ピーク予測</p>
+                        <p className="metric-value">8月22日</p>
+                      </div>
+                    </div>
+                    <span className="pill ok">順調</span>
+                  </div>
+                </div>
               </div>
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Monthly Revenue</h3>
+                  <h3>月次売上</h3>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <div className="bar-chart compact">
+                    {monthlyRevenue.map((item) => (
+                      <div className="bar-item" key={item.label}>
+                        <span className="bar-value">{item.display}</span>
+                        <div className="bar-track">
+                          <span className="bar-fill" style={{ height: `${item.value}%` }} />
+                        </div>
+                        <span className="bar-label">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="chart-foot">
+                    <span className="muted">平均 $30k</span>
+                    <span className="pill ok">+8%</span>
+                  </div>
+                </div>
               </div>
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Yearly Revenue</h3>
+                  <h3>年次売上</h3>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <svg
+                    className="chart-svg"
+                    viewBox="0 0 260 120"
+                    role="img"
+                    aria-label="年次売上の比較"
+                  >
+                    <polyline
+                      className="chart-line muted"
+                      points="0,88 40,80 80,72 120,68 160,62 200,56 240,50 260,46"
+                    />
+                    <polyline
+                      className="chart-line"
+                      points="0,96 40,86 80,76 120,66 160,52 200,40 240,32 260,28"
+                    />
+                  </svg>
+                  <ul className="chart-legend inline">
+                    <li className="legend-item">
+                      <span className="legend-swatch muted" />
+                      <span>前年</span>
+                    </li>
+                    <li className="legend-item">
+                      <span className="legend-swatch" />
+                      <span>今年</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
             <div className="section-header compact">
               <div>
-                <h3 className="section-subtitle">Price Management</h3>
-                <p className="note">Admin only - add, edit, and delete actions</p>
+                <h3 className="section-subtitle">価格管理</h3>
+                <p className="note">管理者のみ - 追加・編集・削除が可能</p>
               </div>
               <button className="btn outline" type="button">
-                Add Category
+                カテゴリ追加
               </button>
             </div>
             <div className="table-wrapper">
               <table className="table">
                 <thead>
                   <tr>
-                    <th scope="col">Category</th>
-                    <th scope="col">Unit Price</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">カテゴリ</th>
+                    <th scope="col">単価</th>
+                    <th scope="col">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -389,10 +627,10 @@ function App() {
                       <td>
                         <div className="table-actions">
                           <button className="btn ghost" type="button">
-                            Edit
+                            編集
                           </button>
                           <button className="btn danger" type="button">
-                            Delete
+                            削除
                           </button>
                         </div>
                       </td>
@@ -406,34 +644,70 @@ function App() {
           <section className="section" id="defects">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Quality</p>
-                <h2 className="section-title">Defect Analysis</h2>
-                <p className="note">Monitor count and ratio changes</p>
+                <p className="section-kicker">品質</p>
+                <h2 className="section-title">不良分析</h2>
+                <p className="note">件数と比率の変化を監視</p>
               </div>
             </div>
             <div className="block">
-              <p className="block-title">Period</p>
+              <p className="block-title">期間</p>
               <div className="tab-list">
                 <button className="tab active" type="button">
-                  Weekly
+                  週次
                 </button>
                 <button className="tab" type="button">
-                  Monthly
+                  月次
                 </button>
               </div>
             </div>
             <div className="chart-grid">
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Defect Count</h3>
+                  <h3>不良数</h3>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <div className="bar-chart compact">
+                    {defectWeekly.map((item) => (
+                      <div className="bar-item" key={item.label}>
+                        <span className="bar-value">{item.display}</span>
+                        <div className="bar-track">
+                          <span className="bar-fill alt" style={{ height: `${item.value}%` }} />
+                        </div>
+                        <span className="bar-label">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="chart-foot">
+                    <span className="muted">平均 21/週</span>
+                    <span className="pill warning">+3%</span>
+                  </div>
+                </div>
               </div>
               <div className="chart-card">
                 <div className="card-header">
-                  <h3>Defect Ratio (%)</h3>
+                  <h3>不良率（%）</h3>
                 </div>
-                <div className="chart-placeholder">Chart</div>
+                <div className="chart-surface">
+                  <svg
+                    className="chart-svg"
+                    viewBox="0 0 260 120"
+                    role="img"
+                    aria-label="不良率の推移"
+                  >
+                    <polyline
+                      className="chart-line secondary"
+                      points="0,84 40,72 80,78 120,64 160,70 200,58 240,62 260,54"
+                    />
+                    <polyline
+                      className="chart-line secondary dashed"
+                      points="160,70 200,58 240,62 260,54"
+                    />
+                  </svg>
+                  <div className="chart-foot">
+                    <span className="muted">平均比率: 3.2%</span>
+                    <span className="pill ok">安定</span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -441,26 +715,26 @@ function App() {
           <section className="section" id="targets">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Targets</p>
-                <h2 className="section-title">Harvest Targets</h2>
-                <p className="note">Admin only</p>
+                <p className="section-kicker">目標</p>
+                <h2 className="section-title">収穫目標</h2>
+                <p className="note">管理者のみ</p>
               </div>
             </div>
             <div className="form-grid">
               <div className="form-field">
-                <label htmlFor="daily-target">Daily Target (kg)</label>
-                <input id="daily-target" placeholder="Input Field" type="text" />
+                <label htmlFor="daily-target">日次目標（kg）</label>
+                <input id="daily-target" placeholder="入力" type="text" />
               </div>
               <div className="form-field">
-                <label htmlFor="weekly-target">Weekly Target (kg)</label>
-                <input id="weekly-target" placeholder="Input Field" type="text" />
+                <label htmlFor="weekly-target">週次目標（kg）</label>
+                <input id="weekly-target" placeholder="入力" type="text" />
               </div>
               <div className="form-field">
-                <label htmlFor="monthly-target">Monthly Target (kg)</label>
-                <input id="monthly-target" placeholder="Input Field" type="text" />
+                <label htmlFor="monthly-target">月次目標（kg）</label>
+                <input id="monthly-target" placeholder="入力" type="text" />
               </div>
               <button className="btn primary" type="button">
-                Save Targets
+                目標を保存
               </button>
             </div>
           </section>
@@ -468,26 +742,26 @@ function App() {
           <section className="section" id="profile">
             <div className="section-header">
               <div>
-                <p className="section-kicker">Account</p>
-                <h2 className="section-title">Profile</h2>
-                <p className="note">Update your personal details</p>
+                <p className="section-kicker">アカウント</p>
+                <h2 className="section-title">プロフィール</h2>
+                <p className="note">個人情報を更新</p>
               </div>
             </div>
             <div className="form-grid">
               <div className="form-field">
-                <label htmlFor="profile-name">Name</label>
-                <input id="profile-name" placeholder="Input Field" type="text" />
+                <label htmlFor="profile-name">名前</label>
+                <input id="profile-name" placeholder="入力" type="text" />
               </div>
               <div className="form-field">
-                <label htmlFor="profile-email">Email</label>
-                <input id="profile-email" placeholder="Input Field" type="email" />
+                <label htmlFor="profile-email">メール</label>
+                <input id="profile-email" placeholder="入力" type="email" />
               </div>
               <div className="form-field">
-                <label htmlFor="profile-password">Password</label>
-                <input id="profile-password" placeholder="Input Field" type="password" />
+                <label htmlFor="profile-password">パスワード</label>
+                <input id="profile-password" placeholder="入力" type="password" />
               </div>
               <button className="btn primary" type="button">
-                Save Changes
+                変更を保存
               </button>
             </div>
           </section>
