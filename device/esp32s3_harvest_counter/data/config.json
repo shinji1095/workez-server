@@ -1,0 +1,28 @@
+{
+  "wifi_ssid": "aterm-cd7784-a",
+  "wifi_pass": "9d1d50c097fc7",
+
+  "server_base_url": "http://192.168.10.110",
+  "api_path": "/api/harvest/amount/add",
+  "jwt_token": "1Vax7EOrnxYdQkj4dIQtpFxsZ04n2vsd",
+
+  "device_id": "DEV001",
+  "category_id": "C1",
+
+  "send_interval_sec": 600,
+  "debug": true,
+
+  "adc_pin": 0,
+  "sample_interval_ms": 25,
+
+  "threshold_high": 1800,
+  "threshold_low": 1600,
+  "min_presence_ms": 50,
+  "min_gap_ms": 500,
+
+  "ema_alpha": 0.2,
+
+  "ntp_enabled": true,
+  "ntp_server": "pool.ntp.org",
+  "tz_offset_minutes": 540
+}
