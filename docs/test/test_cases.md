@@ -736,3 +736,18 @@
   - 認証が必要な場合: 401/403（実装次第、TBD）
   - 存在しないID指定（{userId}/{deviceId}/{categoryId}）: 404（実装次第、TBD）
   - サーバーエラー時: 500 かつ ErrorResponse 形式
+
+## TC-040
+- 対象operationId: `createTabletHarvest`
+- 対象: 収穫登録（タブレット）（`harvest_register.html` → POST /tablet/harvest/{date}）
+- 前提
+  - 対象APIが起動していること
+  - テストDB（pytest-django）が使用されること
+  - `sizes` / `ranks` のマスタが登録済みであること
+- 手順
+  - `harvest_register.html` で日付/ロット/サイズ/ランク別の重量（kg）を入力し送信
+  - APIは各入力セルに対して `POST /tablet/harvest/{date}?lot=...&size=...&rank=...` を送信（body: `{ "count": <g> }`）
+- 期待結果
+  - ステータスコードが 201（または上書きの場合 200）であること
+  - `harvest_records` に `lot_name` / `size_id` / `rank_id` / `count(g)` が登録されていること
+  - `GET /harvest/amount/daily` の集計値が登録内容に反映されること

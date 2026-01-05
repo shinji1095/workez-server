@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: 椎茸収穫管理API（仮）
+  title: 椎茸収穫管理API
   version: 0.1.0
-  description: '椎茸の収穫数をITデバイスで自動集計しWebで可視化するためのAPI仕様書（仮）。
+  description: '椎茸の収穫数をITデバイスで自動集計しWebで可視化するためのAPI仕様書。
 
     一次情報はプロジェクト内CSV（01_WEB機能一覧(機能一覧).csv）の「メソッド」「パス」等のみ。
 
@@ -25,6 +25,8 @@ tags:
   description: デバイスに関する機能群
 - name: harvest
   description: 収穫量を提供する機能群
+- name: tablet
+  description: タブレット入力に関する機能群
 - name: prices
   description: 単価に関する機能群
 - name: users
@@ -144,7 +146,7 @@ paths:
         説明: 年間の売り上げ推移
 
         '
-      operationId: listAnalyticsRevenueYearly
+      operationId: listAnalyticsRevenueyearly
       responses:
         '200':
           description: 成功
@@ -425,7 +427,7 @@ paths:
         権限（CSV記載）: 一般≧
 
         '
-      operationId: retrieveDevicesAlarm
+      operationId: retrieveDevicesalarm
       parameters:
       - $ref: '#/components/parameters/deviceId'
       responses:
@@ -450,7 +452,7 @@ paths:
       - devices
       summary: 故障アラーム通知
       description: "ページ: 故障アラーム\n権限（CSV記載）: \n説明: デバイスが最新のアラーム状態（AlarmItem）を送信\n"
-      operationId: createDevicesAlarm
+      operationId: createDevicesalarm
       parameters:
       - $ref: '#/components/parameters/deviceId'
       requestBody:
@@ -486,7 +488,7 @@ paths:
         権限（CSV記載）: 一般≧
 
         '
-      operationId: retrieveDevicesAlarmDetail
+      operationId: retrieveDevicesalarmDetail
       parameters:
       - $ref: '#/components/parameters/deviceId'
       - $ref: '#/components/parameters/page'
@@ -634,7 +636,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
-  /harvest/amount/daily/category/{categoryId}:
+  /harvest/amount/daily/size/{sizeId}:
     get:
       tags:
       - harvest
@@ -646,9 +648,9 @@ paths:
         説明: 仕分けサイズごとの日間収穫量の推移
 
         '
-      operationId: retrieveHarvestAmountDailyCategory
+      operationId: retrieveHarvestAmountDailySize
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
       responses:
@@ -657,7 +659,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RetrieveHarvestAmountDailyCategoryResponse'
+                $ref: '#/components/schemas/RetrieveHarvestAmountDailySizeResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -683,23 +685,88 @@ paths:
         未指定の場合は当日（サーバー時刻）
 
         '
-      operationId: partialUpdateHarvestAmountDailyCategory
+      operationId: partialUpdateHarvestAmountDailySize
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
       - $ref: '#/components/parameters/date'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PartialUpdateHarvestAmountDailyCategoryRequest'
+              $ref: '#/components/schemas/PartialUpdateHarvestAmountDailySizeRequest'
       responses:
         '200':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PartialUpdateHarvestAmountDailyCategoryResponse'
+                $ref: '#/components/schemas/PartialUpdateHarvestAmountDailySizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/daily/rank/{rankId}:
+    get:
+      tags:
+      - harvest
+      summary: 仕分けランクごとの 日間収穫量
+      description: 'ページ: 収穫量推移
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveHarvestAmountDailyRank
+      parameters:
+      - $ref: '#/components/parameters/rankId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountDailyRankResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/daily/size/{sizeId}/rank/{rankId}:
+    get:
+      tags:
+      - harvest
+      summary: 仕分けランク・サイズごとの 日間収穫量
+      description: 'ページ: 収穫量推移
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveHarvestAmountDailySizeRank
+      parameters:
+      - $ref: '#/components/parameters/sizeId'
+      - $ref: '#/components/parameters/rankId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountDailySizeRankResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -743,7 +810,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
-  /harvest/amount/monthly/category/{categoryId}:
+  /harvest/amount/monthly/size/{sizeId}:
     get:
       tags:
       - harvest
@@ -755,9 +822,9 @@ paths:
         説明: 仕分けサイズごとの月間収穫量の推移
 
         '
-      operationId: retrieveHarvestAmountMonthlyCategory
+      operationId: retrieveHarvestAmountMonthlySize
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
       responses:
@@ -766,7 +833,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RetrieveHarvestAmountMonthlyCategoryResponse'
+                $ref: '#/components/schemas/RetrieveHarvestAmountMonthlySizeResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -792,23 +859,88 @@ paths:
         未指定の場合は今月（サーバー時刻）
 
         '
-      operationId: partialUpdateHarvestAmountMonthlyCategory
+      operationId: partialUpdateHarvestAmountMonthlySize
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
       - $ref: '#/components/parameters/month_ym'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PartialUpdateHarvestAmountMonthlyCategoryRequest'
+              $ref: '#/components/schemas/PartialUpdateHarvestAmountMonthlySizeRequest'
       responses:
         '200':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PartialUpdateHarvestAmountMonthlyCategoryResponse'
+                $ref: '#/components/schemas/PartialUpdateHarvestAmountMonthlySizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/monthly/rank/{rankId}:
+    get:
+      tags:
+      - harvest
+      summary: 仕分けランクごとの 月間収穫量
+      description: 'ページ: 収穫量推移
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveHarvestAmountMonthlyRank
+      parameters:
+      - $ref: '#/components/parameters/rankId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountMonthlyRankResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/monthly/size/{sizeId}/rank/{rankId}:
+    get:
+      tags:
+      - harvest
+      summary: 仕分けランク・サイズごとの 月間収穫量
+      description: 'ページ: 収穫量推移
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveHarvestAmountMonthlySizeRank
+      parameters:
+      - $ref: '#/components/parameters/sizeId'
+      - $ref: '#/components/parameters/rankId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountMonthlySizeRankResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -852,7 +984,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
-  /harvest/amount/weekly/category/{categoryId}:
+  /harvest/amount/weekly/size/{sizeId}:
     get:
       tags:
       - harvest
@@ -864,9 +996,9 @@ paths:
         説明: 仕分けサイズごとの週間収穫量の推移
 
         '
-      operationId: retrieveHarvestAmountWeeklyCategory
+      operationId: retrieveHarvestAmountWeeklySize
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
       responses:
@@ -875,7 +1007,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RetrieveHarvestAmountWeeklyCategoryResponse'
+                $ref: '#/components/schemas/RetrieveHarvestAmountWeeklySizeResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -901,23 +1033,88 @@ paths:
         未指定の場合は今週（サーバー時刻）
 
         '
-      operationId: partialUpdateHarvestAmountWeeklyCategory
+      operationId: partialUpdateHarvestAmountWeeklySize
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
       - $ref: '#/components/parameters/date'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PartialUpdateHarvestAmountWeeklyCategoryRequest'
+              $ref: '#/components/schemas/PartialUpdateHarvestAmountWeeklySizeRequest'
       responses:
         '200':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PartialUpdateHarvestAmountWeeklyCategoryResponse'
+                $ref: '#/components/schemas/PartialUpdateHarvestAmountWeeklySizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/weekly/rank/{rankId}:
+    get:
+      tags:
+      - harvest
+      summary: 仕分けランクごとの 週間収穫量
+      description: 'ページ: 収穫量推移
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveHarvestAmountWeeklyRank
+      parameters:
+      - $ref: '#/components/parameters/rankId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountWeeklyRankResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/amount/weekly/size/{sizeId}/rank/{rankId}:
+    get:
+      tags:
+      - harvest
+      summary: 仕分けランク・サイズごとの 週間収穫量
+      description: 'ページ: 収穫量推移
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveHarvestAmountWeeklySizeRank
+      parameters:
+      - $ref: '#/components/parameters/sizeId'
+      - $ref: '#/components/parameters/rankId'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveHarvestAmountWeeklySizeRankResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1036,7 +1233,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /prices/category/{categoryId}:
+  /prices/size/{sizeId}/rank/{rankId}:
     post:
       tags:
       - prices
@@ -1048,22 +1245,23 @@ paths:
         説明: 指定年月の単価（円/個）を登録
 
         '
-      operationId: createPricesCategory
+      operationId: createPricesSizeRank
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
+      - $ref: '#/components/parameters/rankId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePricesCategoryRequest'
+              $ref: '#/components/schemas/CreatePricesSizeRankRequest'
       responses:
         '201':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreatePricesCategoryResponse'
+                $ref: '#/components/schemas/CreatePricesSizeRankResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1085,22 +1283,23 @@ paths:
         説明: 指定年月の単価（円/個）を更新
 
         '
-      operationId: updatePricesCategory
+      operationId: updatePricesSizeRank
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
+      - $ref: '#/components/parameters/rankId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePricesCategoryRequest'
+              $ref: '#/components/schemas/UpdatePricesSizeRankRequest'
       responses:
         '200':
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdatePricesCategoryResponse'
+                $ref: '#/components/schemas/UpdatePricesSizeRankResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1122,9 +1321,10 @@ paths:
         説明: クエリパラメータ year, month で指定した単価を削除
 
         '
-      operationId: deletePricesCategory
+      operationId: deletePricesSizeRank
       parameters:
-      - $ref: '#/components/parameters/categoryId'
+      - $ref: '#/components/parameters/sizeId'
+      - $ref: '#/components/parameters/rankId'
       - $ref: '#/components/parameters/year'
       - $ref: '#/components/parameters/month'
       responses:
@@ -1133,7 +1333,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeletePricesCategoryResponse'
+                $ref: '#/components/schemas/DeletePricesSizeRankResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1204,6 +1404,147 @@ paths:
       parameters:
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/page_size'
+  /tablet/harvest/{date}:
+    post:
+      tags:
+      - tablet
+      summary: タブレット入力収穫数追加
+      description: 'ページ: 収穫登録
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: createTabletHarvest
+      parameters:
+      - $ref: '#/components/parameters/datePath'
+      - $ref: '#/components/parameters/tabletLot'
+      - $ref: '#/components/parameters/tabletSize'
+      - $ref: '#/components/parameters/tabletRank'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTabletHarvestRequest'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTabletHarvestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+      - tablet
+      summary: タブレット入力収穫数取得
+      description: 'ページ: 収穫一覧
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: retrieveTabletHarvest
+      parameters:
+      - $ref: '#/components/parameters/datePath'
+      - $ref: '#/components/parameters/tabletLot'
+      - $ref: '#/components/parameters/tabletSize'
+      - $ref: '#/components/parameters/tabletRank'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrieveTabletHarvestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+      - tablet
+      summary: タブレット入力収穫数変更
+      description: 'ページ: 収穫一覧
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: updateTabletHarvest
+      parameters:
+      - $ref: '#/components/parameters/datePath'
+      - $ref: '#/components/parameters/tabletLot'
+      - $ref: '#/components/parameters/tabletSize'
+      - $ref: '#/components/parameters/tabletRank'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTabletHarvestRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTabletHarvestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+      - tablet
+      summary: タブレット入力収穫数削除
+      description: 'ページ: 収穫一覧
+
+        権限（CSV記載）: 一般≧
+
+        '
+      operationId: deleteTabletHarvest
+      parameters:
+      - $ref: '#/components/parameters/datePath'
+      - $ref: '#/components/parameters/tabletLot'
+      - $ref: '#/components/parameters/tabletSize'
+      - $ref: '#/components/parameters/tabletRank'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteTabletHarvestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /users:
     get:
       tags:
@@ -1335,16 +1676,39 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   parameters:
-    categoryId:
-      name: categoryId
+    sizeId:
+      name: sizeId
       in: path
       required: true
       schema:
         type: string
         minLength: 1
         maxLength: 64
+        enum:
+        - L
+        - M
+        - S
+        - SS
+        - '3S'
+        - 小
+        - 黒
         example: S
-      description: '収穫カテゴリ（仕分けサイズ等）のID。例: S'
+      description: 'サイズID。例: S'
+    rankId:
+      name: rankId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+        enum:
+        - A
+        - B
+        - C
+        - 廃棄
+        example: A
+      description: '収穫ランク（仕分けランク等）のID。例: A'
     deviceId:
       name: deviceId
       in: path
@@ -1365,6 +1729,15 @@ components:
         format: uuid
         example: 550e8400-e29b-41d4-a716-446655440000
       description: ユーザーID（UUID）
+    datePath:
+      name: date
+      in: path
+      required: true
+      description: 対象日（YYYY-MM-DD）
+      schema:
+        type: string
+        format: date
+      example: '2025-12-21'
     page:
       name: page
       in: query
@@ -1422,6 +1795,49 @@ components:
         minimum: 1
         maximum: 12
       example: 12
+    tabletLot:
+      name: lot
+      in: query
+      required: true
+      description: ロット（`harvest_records.lot_name` 相当）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+      example: '1e'
+    tabletSize:
+      name: size
+      in: query
+      required: true
+      description: サイズID（`harvest_records.size_id` 相当）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+        enum:
+        - L
+        - M
+        - S
+        - SS
+        - '3S'
+        - 小
+        - 黒
+      example: S
+    tabletRank:
+      name: rank
+      in: query
+      required: true
+      description: ランクID（`harvest_records.rank_id` 相当）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+        enum:
+        - A
+        - B
+        - C
+        - 廃棄
+      example: A
   responses:
     BadRequest:
       description: 不正なリクエスト（バリデーションエラー等）
@@ -1518,11 +1934,8 @@ components:
       description: CreateDefectsAmountAddResponse（回答例を反映）
     CreateDefectsAmountAddRequest:
       type: object
-      description: 不良品数追加リクエスト（デバイス→サーバー）（差分アップロード）
+      description: 不良品数追加リクエスト（差分アップロード）
       properties:
-        device_id:
-          type: string
-          example: DEV001
         category_id:
           type: string
           example: S
@@ -1542,7 +1955,6 @@ components:
           example: 550e8400-e29b-41d4-a716-446655440000
       required:
       - event_id
-      - device_id
       - category_id
       - count
       - occurred_at
@@ -1623,14 +2035,30 @@ components:
       description: CreateHarvestAmountAddResponse（回答例を反映）
     CreateHarvestAmountAddRequest:
       type: object
-      description: 収穫数追加リクエスト（デバイス→サーバー）（差分アップロード）
+      description: 収穫数追加リクエスト（差分アップロード）
       properties:
-        device_id:
+        lot_name:
           type: string
-          example: DEV001
-        category_id:
+          example: '1e'
+        size_id:
           type: string
+          enum:
+          - L
+          - M
+          - S
+          - SS
+          - '3S'
+          - 小
+          - 黒
           example: S
+        rank_id:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - 廃棄
+          example: A
         count:
           type: integer
           minimum: 1
@@ -1647,12 +2075,13 @@ components:
           example: 550e8400-e29b-41d4-a716-446655440000
       required:
       - event_id
-      - device_id
-      - category_id
+      - lot_name
+      - size_id
+      - rank_id
       - count
       - occurred_at
       additionalProperties: false
-    CreatePricesCategoryResponse:
+    CreatePricesSizeRankResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
@@ -1661,8 +2090,8 @@ components:
             $ref: '#/components/schemas/PriceRecord'
         required:
         - data
-      description: CreatePricesCategoryResponse（回答例を反映）
-    CreatePricesCategoryRequest:
+      description: CreatePricesSizeRankResponse（回答例を反映）
+    CreatePricesSizeRankRequest:
       type: object
       description: 単価登録リクエスト（円/個）
       additionalProperties: false
@@ -1726,16 +2155,16 @@ components:
         required:
         - data
       description: DeleteDevicesResponse（回答例を反映）
-    DeletePricesCategoryResponse:
+    DeletePricesSizeRankResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/DeletePricesCategoryData'
+            $ref: '#/components/schemas/DeletePricesSizeRankData'
         required:
         - data
-      description: DeletePricesCategoryResponse（回答例を反映）
+      description: DeletePricesSizeRankResponse（回答例を反映）
     DeleteUsersResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -1876,17 +2305,17 @@ components:
         required:
         - data
       description: ListUsersResponse（回答例を反映）
-    PartialUpdateHarvestAmountDailyCategoryResponse:
+    PartialUpdateHarvestAmountDailySizeResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/HarvestAggregateDailyByCategoryItem'
+            $ref: '#/components/schemas/HarvestAggregateDailyBySizeItem'
         required:
         - data
-      description: PartialUpdateHarvestAmountDailyCategoryResponse（回答例を反映）
-    PartialUpdateHarvestAmountDailyCategoryRequest:
+      description: PartialUpdateHarvestAmountDailySizeResponse（回答例を反映）
+    PartialUpdateHarvestAmountDailySizeRequest:
       type: object
       description: 手動変更（確定値で置換）
       additionalProperties: false
@@ -1898,17 +2327,17 @@ components:
           description: その期間の確定値（置換）
       required:
       - count
-    PartialUpdateHarvestAmountMonthlyCategoryResponse:
+    PartialUpdateHarvestAmountMonthlySizeResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/HarvestAggregateMonthlyByCategoryItem'
+            $ref: '#/components/schemas/HarvestAggregateMonthlyBySizeItem'
         required:
         - data
-      description: PartialUpdateHarvestAmountMonthlyCategoryResponse（回答例を反映）
-    PartialUpdateHarvestAmountMonthlyCategoryRequest:
+      description: PartialUpdateHarvestAmountMonthlySizeResponse（回答例を反映）
+    PartialUpdateHarvestAmountMonthlySizeRequest:
       type: object
       description: 手動変更（確定値で置換）
       additionalProperties: false
@@ -1920,17 +2349,17 @@ components:
           description: その期間の確定値（置換）
       required:
       - count
-    PartialUpdateHarvestAmountWeeklyCategoryResponse:
+    PartialUpdateHarvestAmountWeeklySizeResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/HarvestAggregateWeeklyByCategoryItem'
+            $ref: '#/components/schemas/HarvestAggregateWeeklyBySizeItem'
         required:
         - data
-      description: PartialUpdateHarvestAmountWeeklyCategoryResponse（回答例を反映）
-    PartialUpdateHarvestAmountWeeklyCategoryRequest:
+      description: PartialUpdateHarvestAmountWeeklySizeResponse（回答例を反映）
+    PartialUpdateHarvestAmountWeeklySizeRequest:
       type: object
       description: 手動変更（確定値で置換）
       additionalProperties: false
@@ -1959,7 +2388,6 @@ components:
         name:
           type: string
           example: 山田花子
-      required: []
       additionalProperties: false
     RetrieveDevicesBatteryResponse:
       allOf:
@@ -1971,36 +2399,36 @@ components:
         required:
         - data
       description: RetrieveDevicesBatteryResponse（回答例を反映）
-    RetrieveHarvestAmountDailyCategoryResponse:
+    RetrieveHarvestAmountDailySizeResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/PaginatedHarvestAggregateDailyByCategory'
+            $ref: '#/components/schemas/PaginatedHarvestAggregateDailyBySize'
         required:
         - data
-      description: RetrieveHarvestAmountDailyCategoryResponse（回答例を反映）
-    RetrieveHarvestAmountMonthlyCategoryResponse:
+      description: RetrieveHarvestAmountDailySizeResponse（回答例を反映）
+    RetrieveHarvestAmountMonthlySizeResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/PaginatedHarvestAggregateMonthlyByCategory'
+            $ref: '#/components/schemas/PaginatedHarvestAggregateMonthlyBySize'
         required:
         - data
-      description: RetrieveHarvestAmountMonthlyCategoryResponse（回答例を反映）
-    RetrieveHarvestAmountWeeklyCategoryResponse:
+      description: RetrieveHarvestAmountMonthlySizeResponse（回答例を反映）
+    RetrieveHarvestAmountWeeklySizeResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
         properties:
           data:
-            $ref: '#/components/schemas/PaginatedHarvestAggregateWeeklyByCategory'
+            $ref: '#/components/schemas/PaginatedHarvestAggregateWeeklyBySize'
         required:
         - data
-      description: RetrieveHarvestAmountWeeklyCategoryResponse（回答例を反映）
+      description: RetrieveHarvestAmountWeeklySizeResponse（回答例を反映）
     UpdateAdminUsersResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
@@ -2027,7 +2455,6 @@ components:
         is_active:
           type: boolean
           example: true
-      required: []
       additionalProperties: false
     UpdateHarvestTargetDailyResponse:
       allOf:
@@ -2107,7 +2534,7 @@ components:
       required:
       - target_count
       additionalProperties: false
-    UpdatePricesCategoryResponse:
+    UpdatePricesSizeRankResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessEnvelopeBase'
       - type: object
@@ -2116,8 +2543,8 @@ components:
             $ref: '#/components/schemas/PriceRecord'
         required:
         - data
-      description: UpdatePricesCategoryResponse（回答例を反映）
-    UpdatePricesCategoryRequest:
+      description: UpdatePricesSizeRankResponse（回答例を反映）
+    UpdatePricesSizeRankRequest:
       type: object
       description: 単価更新リクエスト（円/個）
       additionalProperties: false
@@ -2336,13 +2763,28 @@ components:
           type: string
           format: uuid
           example: 550e8400-e29b-41d4-a716-446655440000
-        device_id:
+        lot_name:
           type: string
-          example: DEV001
-        category_id:
+          example: '1e'
+        size_id:
           type: string
-          nullable: true
+          enum:
+          - L
+          - M
+          - S
+          - SS
+          - '3S'
+          - 小
+          - 黒
           example: S
+        rank_id:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - 廃棄
+          example: A
         count:
           type: integer
           minimum: 1
@@ -2357,7 +2799,9 @@ components:
           example: '2025-12-15T12:34:56+09:00'
       required:
       - id
-      - device_id
+      - lot_name
+      - size_id
+      - rank_id
       - count
       - occurred_at
       - created_at
@@ -2370,9 +2814,6 @@ components:
           type: string
           format: uuid
           example: 550e8400-e29b-41d4-a716-446655440000
-        device_id:
-          type: string
-          example: DEV001
         category_id:
           type: string
           nullable: true
@@ -2391,7 +2832,6 @@ components:
           example: '2025-12-15T12:34:56+09:00'
       required:
       - id
-      - device_id
       - count
       - occurred_at
       - created_at
@@ -2444,18 +2884,18 @@ components:
       - period
       - total_count
       additionalProperties: false
-    HarvestAggregateDailyByCategoryItem:
+    HarvestAggregateDailyBySizeItem:
       type: object
-      description: 日別×カテゴリ収穫集計（1件）
+      description: 日別×サイズ収穫集計（1件）
       properties:
         period:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
           example: '2025-12-15'
-        category_id:
+        size_id:
           type: string
           example: S
-        category_name:
+        size_name:
           type: string
           nullable: true
           example: Sサイズ
@@ -2465,21 +2905,21 @@ components:
           example: 1200
       required:
       - period
-      - category_id
+      - size_id
       - total_count
       additionalProperties: false
-    HarvestAggregateWeeklyByCategoryItem:
+    HarvestAggregateWeeklyBySizeItem:
       type: object
-      description: 週別×カテゴリ収穫集計（1件）
+      description: 週別×サイズ収穫集計（1件）
       properties:
         period:
           type: string
           pattern: ^\d{4}-W\d{2}$
           example: 2025-W50
-        category_id:
+        size_id:
           type: string
           example: S
-        category_name:
+        size_name:
           type: string
           nullable: true
           example: Sサイズ
@@ -2489,21 +2929,21 @@ components:
           example: 8000
       required:
       - period
-      - category_id
+      - size_id
       - total_count
       additionalProperties: false
-    HarvestAggregateMonthlyByCategoryItem:
+    HarvestAggregateMonthlyBySizeItem:
       type: object
-      description: 月別×カテゴリ収穫集計（1件）
+      description: 月別×サイズ収穫集計（1件）
       properties:
         period:
           type: string
           pattern: ^\d{4}-\d{2}$
           example: 2025-12
-        category_id:
+        size_id:
           type: string
           example: S
-        category_name:
+        size_name:
           type: string
           nullable: true
           example: Sサイズ
@@ -2513,7 +2953,7 @@ components:
           example: 35000
       required:
       - period
-      - category_id
+      - size_id
       - total_count
       additionalProperties: false
     HarvestTarget:
@@ -2633,11 +3073,27 @@ components:
       additionalProperties: false
     PriceRecord:
       type: object
-      description: 単価（カテゴリ別）
+      description: 単価（サイズ×ランク別）
       properties:
-        category_id:
+        size_id:
           type: string
+          enum:
+          - L
+          - M
+          - S
+          - SS
+          - '3S'
+          - 小
+          - 黒
           example: S
+        rank_id:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - 廃棄
+          example: A
         unit_price_yen:
           type: integer
           minimum: 0
@@ -2657,7 +3113,8 @@ components:
           format: date-time
           example: '2025-12-15T12:34:56+09:00'
       required:
-      - category_id
+      - size_id
+      - rank_id
       - unit_price_yen
       - updated_at
       additionalProperties: false
@@ -2669,16 +3126,20 @@ components:
           type: string
           pattern: ^\d{4}-\d{2}$
           example: 2025-12
-        category_id:
+        size_id:
           type: string
           example: S
+        rank_id:
+          type: string
+          example: A
         unit_price_yen:
           type: integer
           minimum: 0
           example: 120
       required:
       - period
-      - category_id
+      - size_id
+      - rank_id
       - unit_price_yen
       additionalProperties: false
     PriceYearlyItem:
@@ -2689,16 +3150,20 @@ components:
           type: string
           pattern: ^\d{4}$
           example: '2025'
-        category_id:
+        size_id:
           type: string
           example: S
+        rank_id:
+          type: string
+          example: A
         unit_price_yen:
           type: integer
           minimum: 0
           example: 120
       required:
       - period
-      - category_id
+      - size_id
+      - rank_id
       - unit_price_yen
       additionalProperties: false
     ForecastHarvestMonthlyItem:
@@ -3101,14 +3566,14 @@ components:
       - page_size
       - total
       additionalProperties: false
-    PaginatedHarvestAggregateDailyByCategory:
+    PaginatedHarvestAggregateDailyBySize:
       type: object
-      description: 日別×カテゴリ収穫集計一覧（ページング）
+      description: 日別×サイズ収穫集計一覧（ページング）
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/HarvestAggregateDailyByCategoryItem'
+            $ref: '#/components/schemas/HarvestAggregateDailyBySizeItem'
         page:
           type: integer
           minimum: 1
@@ -3127,14 +3592,14 @@ components:
       - page_size
       - total
       additionalProperties: false
-    PaginatedHarvestAggregateWeeklyByCategory:
+    PaginatedHarvestAggregateWeeklyBySize:
       type: object
-      description: 週別×カテゴリ収穫集計一覧（ページング）
+      description: 週別×サイズ収穫集計一覧（ページング）
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/HarvestAggregateWeeklyByCategoryItem'
+            $ref: '#/components/schemas/HarvestAggregateWeeklyBySizeItem'
         page:
           type: integer
           minimum: 1
@@ -3153,14 +3618,14 @@ components:
       - page_size
       - total
       additionalProperties: false
-    PaginatedHarvestAggregateMonthlyByCategory:
+    PaginatedHarvestAggregateMonthlyBySize:
       type: object
-      description: 月別×カテゴリ収穫集計一覧（ページング）
+      description: 月別×サイズ収穫集計一覧（ページング）
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/HarvestAggregateMonthlyByCategoryItem'
+            $ref: '#/components/schemas/HarvestAggregateMonthlyBySizeItem'
         page:
           type: integer
           minimum: 1
@@ -3260,19 +3725,36 @@ components:
       - deleted
       - user_id
       additionalProperties: false
-    DeletePricesCategoryData:
+    DeletePricesSizeRankData:
       type: object
-      description: 単価カテゴリ削除結果
+      description: 単価削除結果
       properties:
         deleted:
           type: boolean
           example: true
-        category_id:
+        size_id:
           type: string
+          enum:
+          - L
+          - M
+          - S
+          - SS
+          - '3S'
+          - 小
+          - 黒
           example: S
+        rank_id:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - 廃棄
+          example: A
       required:
       - deleted
-      - category_id
+      - size_id
+      - rank_id
       additionalProperties: false
     CreateDevicesAlarmRequest:
       $ref: '#/components/schemas/AlarmItem'
@@ -3316,6 +3798,533 @@ components:
         required:
         - data
       description: ListAnalyticsRevenueYearlyResponse（回答例を反映）
+    RetrieveHarvestAmountDailyRankResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateDailyByRank'
+        required:
+        - data
+      description: RetrieveHarvestAmountDailyRankResponse（回答例を反映）
+    RetrieveHarvestAmountWeeklyRankResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateWeeklyByRank'
+        required:
+        - data
+      description: RetrieveHarvestAmountWeeklyRankResponse（回答例を反映）
+    RetrieveHarvestAmountMonthlyRankResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateMonthlyByRank'
+        required:
+        - data
+      description: RetrieveHarvestAmountMonthlyRankResponse（回答例を反映）
+    RetrieveHarvestAmountDailySizeRankResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateDailyBySizeRank'
+        required:
+        - data
+      description: RetrieveHarvestAmountDailySizeRankResponse（回答例を反映）
+    RetrieveHarvestAmountWeeklySizeRankResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateWeeklyBySizeRank'
+        required:
+        - data
+      description: RetrieveHarvestAmountWeeklySizeRankResponse（回答例を反映）
+    RetrieveHarvestAmountMonthlySizeRankResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaginatedHarvestAggregateMonthlyBySizeRank'
+        required:
+        - data
+      description: RetrieveHarvestAmountMonthlySizeRankResponse（回答例を反映）
+    TabletHarvestEntry:
+      type: object
+      description: タブレット入力収穫（1件）
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2025-12-21'
+        lot:
+          type: string
+          example: '1e'
+        size:
+          type: string
+          enum:
+          - L
+          - M
+          - S
+          - SS
+          - '3S'
+          - 小
+          - 黒
+          example: S
+        rank:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - 廃棄
+          example: A
+        count:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - date
+      - lot
+      - size
+      - rank
+      - count
+      additionalProperties: false
+    CreateTabletHarvestRequest:
+      type: object
+      description: タブレット入力収穫数追加リクエスト
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - count
+      additionalProperties: false
+    CreateTabletHarvestResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/TabletHarvestEntry'
+        required:
+        - data
+      description: CreateTabletHarvestResponse（回答例を反映）
+    RetrieveTabletHarvestResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/TabletHarvestEntry'
+        required:
+        - data
+      description: RetrieveTabletHarvestResponse（回答例を反映）
+    UpdateTabletHarvestRequest:
+      type: object
+      description: タブレット入力収穫数変更リクエスト
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - count
+      additionalProperties: false
+    UpdateTabletHarvestResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/TabletHarvestEntry'
+        required:
+        - data
+      description: UpdateTabletHarvestResponse（回答例を反映）
+    DeleteTabletHarvestData:
+      type: object
+      description: タブレット入力収穫削除結果
+      properties:
+        deleted:
+          type: boolean
+          example: true
+        date:
+          type: string
+          format: date
+          example: '2025-12-21'
+        lot:
+          type: string
+          example: '1e'
+        size:
+          type: string
+          enum:
+          - L
+          - M
+          - S
+          - SS
+          - '3S'
+          - 小
+          - 黒
+          example: S
+        rank:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+          - 廃棄
+          example: A
+      required:
+      - deleted
+      - date
+      - lot
+      - size
+      - rank
+      additionalProperties: false
+    DeleteTabletHarvestResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessEnvelopeBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/DeleteTabletHarvestData'
+        required:
+        - data
+      description: DeleteTabletHarvestResponse（回答例を反映）
+    HarvestAggregateDailyByRankItem:
+      type: object
+      description: 日別×ランク収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          example: '2025-12-15'
+        rank_id:
+          type: string
+          example: A
+        rank_name:
+          type: string
+          nullable: true
+          example: Aランク
+        total_count:
+          type: integer
+          minimum: 0
+          example: 1200
+      required:
+      - period
+      - rank_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateWeeklyByRankItem:
+      type: object
+      description: 週別×ランク収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-W\d{2}$
+          example: 2025-W50
+        rank_id:
+          type: string
+          example: A
+        rank_name:
+          type: string
+          nullable: true
+          example: Aランク
+        total_count:
+          type: integer
+          minimum: 0
+          example: 8000
+      required:
+      - period
+      - rank_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateMonthlyByRankItem:
+      type: object
+      description: 月別×ランク収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        rank_id:
+          type: string
+          example: A
+        rank_name:
+          type: string
+          nullable: true
+          example: Aランク
+        total_count:
+          type: integer
+          minimum: 0
+          example: 35000
+      required:
+      - period
+      - rank_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateDailyBySizeRankItem:
+      type: object
+      description: 日別×サイズ×ランク収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          example: '2025-12-15'
+        size_id:
+          type: string
+          example: S
+        size_name:
+          type: string
+          nullable: true
+          example: Sサイズ
+        rank_id:
+          type: string
+          example: A
+        rank_name:
+          type: string
+          nullable: true
+          example: Aランク
+        total_count:
+          type: integer
+          minimum: 0
+          example: 500
+      required:
+      - period
+      - size_id
+      - rank_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateWeeklyBySizeRankItem:
+      type: object
+      description: 週別×サイズ×ランク収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-W\d{2}$
+          example: 2025-W50
+        size_id:
+          type: string
+          example: S
+        size_name:
+          type: string
+          nullable: true
+          example: Sサイズ
+        rank_id:
+          type: string
+          example: A
+        rank_name:
+          type: string
+          nullable: true
+          example: Aランク
+        total_count:
+          type: integer
+          minimum: 0
+          example: 3500
+      required:
+      - period
+      - size_id
+      - rank_id
+      - total_count
+      additionalProperties: false
+    HarvestAggregateMonthlyBySizeRankItem:
+      type: object
+      description: 月別×サイズ×ランク収穫集計（1件）
+      properties:
+        period:
+          type: string
+          pattern: ^\d{4}-\d{2}$
+          example: 2025-12
+        size_id:
+          type: string
+          example: S
+        size_name:
+          type: string
+          nullable: true
+          example: Sサイズ
+        rank_id:
+          type: string
+          example: A
+        rank_name:
+          type: string
+          nullable: true
+          example: Aランク
+        total_count:
+          type: integer
+          minimum: 0
+          example: 15000
+      required:
+      - period
+      - size_id
+      - rank_id
+      - total_count
+      additionalProperties: false
+    PaginatedHarvestAggregateDailyByRank:
+      type: object
+      description: 日別×ランク収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateDailyByRankItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateWeeklyByRank:
+      type: object
+      description: 週別×ランク収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateWeeklyByRankItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateMonthlyByRank:
+      type: object
+      description: 月別×ランク収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateMonthlyByRankItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateDailyBySizeRank:
+      type: object
+      description: 日別×サイズ×ランク収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateDailyBySizeRankItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateWeeklyBySizeRank:
+      type: object
+      description: 週別×サイズ×ランク収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateWeeklyBySizeRankItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
+    PaginatedHarvestAggregateMonthlyBySizeRank:
+      type: object
+      description: 月別×サイズ×ランク収穫集計一覧（ページング）
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HarvestAggregateMonthlyBySizeRankItem'
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        page_size:
+          type: integer
+          minimum: 1
+          example: 50
+        total:
+          type: integer
+          minimum: 0
+          example: 123
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      additionalProperties: false
   securitySchemes:
     bearerAuth:
       type: http

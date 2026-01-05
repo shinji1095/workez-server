@@ -9,31 +9,31 @@
 - エンドポイント定義は CSV（01_WEB機能一覧(機能一覧).csv）に基づく。
 - 入出力・認証の詳細はCSVに無いため、本戦略ではTBDとして扱う。
 
-## 2. テストの層（Unit / Integration / E2E(curl)）
+## 2. テストの層（Unit / Integration / System / E2E(curl)）
 - Unit（単体）
   - 関数/モジュール単位でロジックを検証（例：バリデーション、集計ロジック、変換）。
   - DB/外部I/Oはモック化（方式はTBD）。
 - Integration（結合）
   - APIハンドラ + DB を含めた結合検証。
   - OpenAPIで定義したステータスコードと共通エラー形式（ErrorResponse）を中心に検証。
+- System（システム：UI→API→DB）
+  - UI起点のユーザーフローを、APIとDBまで含めて検証する（例：`harvest_register.html` → `POST /tablet/harvest/{date}` → `harvest_records`）。
+  - ブラウザ操作が必要なケースは将来E2E（ブラウザ）へ拡張し、当面は「UIが送るリクエスト形式」を再現して検証する。
 - E2E(curl)
   - 実行環境に対してcurl等でHTTPリクエストを投げ、仕様に沿ったレスポンスを確認。
   - デプロイ後の疎通確認、運用手順（runbook）と直結。
 
 ## 3. 対象範囲（どのディレクトリがどの層か）
-以下は「想定」のフォルダ構成（実装が未確定/未整備の場合はTBD）。
+- Unit：`api/apps/**/tests/`（サービス/ユーティリティ中心）
+- Integration：`api/tests/`（APIエンドポイント中心）
+- System：`api/tests/`（`test_system_*.py` でUIフローの再現）
+- E2E(curl)：`api/e2e/`（デプロイ先疎通確認）
 
-- Unit：`tests/unit/`（想定）
-- Integration：`tests/integration/`（想定）
-- E2E：`e2e/`（想定）
-- テストデータ（fixture等）：`tests/fixtures/`（想定）
-
-実際のリポジトリ構成に合わせて、ディレクトリは調整する（TBD）。
-
-## 4. 実行順序（Unit→Integration→E2E）
+## 4. 実行順序（Unit→Integration→System→E2E）
 1) Unit を先に実行して、ロジック単体の破壊を最速で検出する  
 2) Integration を実行して、APIとDBの整合を確認する  
-3) 最後に E2E を実行して、環境差分（設定/ネットワーク/デプロイ）を確認する
+3) System を実行して、代表的なユーザーフロー（UI→API→DB）を確認する  
+4) 最後に E2E を実行して、環境差分（設定/ネットワーク/デプロイ）を確認する
 
 ## 5. 品質ゲート（合格条件）
 - Unit：全テスト成功、主要モジュールの最低限のカバレッジ（閾値はTBD）

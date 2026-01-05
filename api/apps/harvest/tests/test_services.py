@@ -10,19 +10,21 @@ def test_add_record_and_aggregate_daily():
     eid = uuid.uuid4()
     services.add_record({
         "event_id": eid,
-        "device_id": "DEV001",
-        "category_id": "C1",
+        "lot_name": "1e",
+        "size_id": "S",
+        "rank_id": "A",
         "count": 10,
         "occurred_at": timezone.now(),
     })
-    items = services.list_aggregate("daily")
+    items = services.list_aggregate_total("daily")
     assert items[0]["total_count"] == 10
 
     with pytest.raises(ConflictError):
         services.add_record({
             "event_id": eid,
-            "device_id": "DEV001",
-            "category_id": "C1",
+            "lot_name": "1e",
+            "size_id": "S",
+            "rank_id": "A",
             "count": 1,
             "occurred_at": timezone.now(),
         })
