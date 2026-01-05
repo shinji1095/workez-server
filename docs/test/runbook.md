@@ -1,37 +1,34 @@
-# 実行手順（Runbook / TBD）
+# 実行手順（Runbook）
 
-本Runbookは「コマンド一発」で Unit + Integration + E2E を実行するための想定手順を記載する。
-実際のテストランナー（nox/pytest 等）の採用・実装はTBD。
+本Runbookは、ローカルで Unit / Integration / System / E2E を実行する手順をまとめる。
 
-## ローカル実行（想定）
-### 例1：noxでまとめて実行（想定）
-- 前提：`nox` と `pytest` が導入済み（TBD）
+## ローカル（pytest）
+- 前提：`api/requirements/local.txt` がインストール済み
+- 実行（Unit + Integration + System）：
+  - `cd api && python3 -m pytest -q`
+- 収穫登録（タブレット）システムテストだけ実行：
+  - `cd api && python3 -m pytest -q -k system_tablet_harvest_register`
+
+## ローカル（nox）
+- 前提：`nox` がインストール済み
 - 実行例：
-  - `nox -s unit integration e2e_local`
+  - `cd api && nox -s unit integration`
 
-### 例2：pytest + スクリプトで実行（想定）
-- 前提：`pytest` が導入済み（TBD）
-- 実行例：
-  - `pytest -q tests/unit`
-  - `pytest -q tests/integration`
-  - `python e2e/run_curl_suite.py --base-url http://127.0.0.1:8000 --suite local`
+## E2E（curl suite）
+curlでデプロイ先疎通確認を行う（DBは汚さない想定）。
 
-## デプロイ後実行（想定）
-### 例：E2Eのみ実行
-- 前提：デプロイ先のURLが確定していること（TBD）
-- 実行例：
-  - `python e2e/run_curl_suite.py --base-url https://<render-service>.onrender.com --suite prod`
+- 実行例（ローカルサーバに対して）：
+  - `cd api && BASE_URL=http://127.0.0.1:8000 python3 e2e/run_curl_suite.py e2e/suites/local.json`
 
-## 実行前提（環境変数・認証準備）
-- `BASE_URL`：E2Eの対象URL（例：`http://127.0.0.1:8000`）
-- 認証情報（TBD）：
-  - JWT/セッション/API Key 等の方式は未確定
-  - 認証が必要な場合、`AUTH_TOKEN` や `DEVICE_API_KEY` 等を環境変数で渡す想定（名称はTBD）
-- テストデータ規約：
-  - 本番DBを汚さない（テストはローカル/検証環境で実施）
-  - 書き込み系のE2Eは識別子prefix（例：`e2e_`）等で区別（具体はTBD）
+## 認証（JWT）
+E2E/curl 実行時は JWT を環境変数で渡す。
+
+- JWT発行（例）：
+  - `cd api && DJANGO_SETTINGS_MODULE=config.settings.local python3 tools/issue_jwt.py --role user --sub user_001`
+- E2E実行時に設定する代表的な変数：
+  - `BASE_URL`（例：`http://127.0.0.1:8000`）
+  - `ADMIN_JWT` / `USER_JWT` / `DEVICE_JWT`
 
 ## 失敗時の参照先
 - OpenAPI：`docs/api/openapi.yaml`
-- 権限表：`docs/auth/permission_matrix.csv`
-- 共通エラー形式：`ErrorResponse`（openapi.yaml の components/schemas/ErrorResponse）
+- 共通エラー形式：`api/apps/common/responses.py`

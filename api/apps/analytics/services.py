@@ -12,10 +12,10 @@ def _period_monthly(dt: datetime) -> str:
 def _period_yearly(dt: datetime) -> str:
     return f"{dt.year:04d}"
 
-def _price_lookup_table() -> Dict[str, List[PriceRecord]]:
-    table: Dict[str, List[PriceRecord]] = defaultdict(list)
-    for p in PriceRecord.objects.all().order_by("category_id", "effective_from"):
-        table[p.category_id].append(p)
+def _price_lookup_table() -> Dict[Tuple[str, str], List[PriceRecord]]:
+    table: Dict[Tuple[str, str], List[PriceRecord]] = defaultdict(list)
+    for p in PriceRecord.objects.all().order_by("size_id", "rank_id", "effective_from"):
+        table[(p.size_id, p.rank_id)].append(p)
     return table
 
 def _find_price(prices: List[PriceRecord], d: date) -> int | None:
@@ -30,10 +30,7 @@ def list_revenue_monthly() -> List[Dict[str, Any]]:
     price_table = _price_lookup_table()
     bucket = defaultdict(int)
     for r in HarvestRecord.objects.all().iterator():
-        cid = r.category_id
-        if not cid:
-            continue
-        prices = price_table.get(cid)
+        prices = price_table.get((r.size_id, r.rank_id))
         if not prices:
             continue
         unit = _find_price(prices, r.occurred_at.date())
@@ -49,10 +46,7 @@ def list_revenue_yearly() -> List[Dict[str, Any]]:
     price_table = _price_lookup_table()
     bucket = defaultdict(int)
     for r in HarvestRecord.objects.all().iterator():
-        cid = r.category_id
-        if not cid:
-            continue
-        prices = price_table.get(cid)
+        prices = price_table.get((r.size_id, r.rank_id))
         if not prices:
             continue
         unit = _find_price(prices, r.occurred_at.date())

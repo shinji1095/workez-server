@@ -9,20 +9,21 @@ from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError  # type: ignore
 
 from apps.common.errors import ConflictError
-from apps.prices.models import PriceRecord
 
-from .models import HarvestAggregateOverride, HarvestRecord
+from .models import HarvestAggregateOverride, HarvestRecord, Rank, Size
 
 PERIOD_DAILY = "daily"
 PERIOD_WEEKLY = "weekly"
 PERIOD_MONTHLY = "monthly"
 
 
-def _require_defined_category(category_id: str) -> None:
-    """Raise NotFound if the category is not registered in prices."""
+def _require_defined_size(size_id: str) -> Size:
+    """Raise NotFound if size_id is not registered in sizes master."""
 
-    if not PriceRecord.objects.filter(category_id=category_id).exists():
-        raise NotFound(detail={"category_id": "category not found"})
+    size = Size.objects.filter(size_id=size_id).first()
+    if not size:
+        raise NotFound(detail={"size_id": "size not found"})
+    return size
 
 
 def _normalize_occurred_at(dt: datetime) -> datetime:
@@ -53,8 +54,11 @@ def add_record(
     data: Optional[Dict[str, Any]] = None,
     *,
     event_id=None,
-    device_id: Optional[str] = None,
-    category_id: Optional[str] = None,
+    lot_name: Optional[str] = None,
+    size: Optional[Size] = None,
+    size_id: Optional[str] = None,
+    rank: Optional[Rank] = None,
+    rank_id: Optional[str] = None,
     count: Optional[int] = None,
     occurred_at: Optional[datetime] = None,
 ) -> HarvestRecord:
@@ -69,17 +73,22 @@ def add_record(
         if not isinstance(data, dict):
             raise ValidationError({"data": "must be an object"})
         event_id = data.get("event_id")
-        device_id = data.get("device_id")
-        category_id = data.get("category_id")
+        lot_name = data.get("lot_name")
+        size = data.get("size")
+        size_id = data.get("size_id")
+        rank = data.get("rank")
+        rank_id = data.get("rank_id")
         count = data.get("count")
         occurred_at = data.get("occurred_at")
 
     if event_id is None:
         raise ValidationError({"event_id": "required"})
-    if device_id is None:
-        raise ValidationError({"device_id": "required"})
-    if category_id is None:
-        raise ValidationError({"category_id": "required"})
+    if lot_name is None:
+        raise ValidationError({"lot_name": "required"})
+    if size is None and size_id is None:
+        raise ValidationError({"size_id": "required"})
+    if rank is None and rank_id is None:
+        raise ValidationError({"rank_id": "required"})
     if count is None:
         raise ValidationError({"count": "required"})
     if occurred_at is None:
@@ -105,14 +114,25 @@ def add_record(
 
     occurred_at = _normalize_occurred_at(occurred_at)
 
+    if size is None:
+        size = Size.objects.filter(size_id=size_id).first()
+        if size is None:
+            raise NotFound(detail={"size_id": "size not found"})
+
+    if rank is None:
+        rank = Rank.objects.filter(rank_id=rank_id).first()
+        if rank is None:
+            raise NotFound(detail={"rank_id": "rank not found"})
+
     if HarvestRecord.objects.filter(event_id=event_id).exists():
         # handled as HTTP 409 by custom exception handler
         raise ConflictError("Duplicate event_id")
 
     return HarvestRecord.objects.create(
         event_id=event_id,
-        device_id=device_id,
-        category_id=category_id,
+        lot_name=lot_name,
+        size=size,
+        rank=rank,
         count=count,
         occurred_at=occurred_at,
     )
@@ -121,65 +141,66 @@ def add_record(
 def _bucket_records(
     period_type: str,
     *,
-    category_id: Optional[str] = None,
+    size_id: Optional[str] = None,
 ) -> Dict[Tuple[str, str], Dict[str, Any]]:
-    qs = HarvestRecord.objects.all().only("occurred_at", "category_id", "category_name", "count")
-    if category_id is not None:
-        qs = qs.filter(category_id=category_id)
+    qs = HarvestRecord.objects.all().only("occurred_at", "size", "count")
+    size: Optional[Size] = None
+    if size_id is not None:
+        size = _require_defined_size(size_id)
+        qs = qs.filter(size_id=size_id)
 
     bucket: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
     for rec in qs.iterator():
         period = _period_of(rec.occurred_at, period_type)
-        key = (period, rec.category_id)
+        key = (period, rec.size_id)
         if key not in bucket:
             bucket[key] = {
                 "period": period,
-                "category_id": rec.category_id,
-                "category_name": rec.category_name,
+                "size_id": rec.size_id,
+                "size_name": size.size_name if size else None,
                 "total_count": 0,
             }
         bucket[key]["total_count"] += int(rec.count)
-        if not bucket[key]["category_name"] and rec.category_name:
-            bucket[key]["category_name"] = rec.category_name
 
     # Apply overrides (override wins)
-    ov_qs = HarvestAggregateOverride.objects.filter(period_type=period_type).only(
-        "period", "category_id", "total_count"
-    )
-    if category_id is not None:
-        ov_qs = ov_qs.filter(category_id=category_id)
+    ov_qs = HarvestAggregateOverride.objects.filter(period_type=period_type).only("period", "size", "total_count")
+    if size_id is not None:
+        ov_qs = ov_qs.filter(size_id=size_id)
 
     for ov in ov_qs.iterator():
-        key = (ov.period, ov.category_id)
-        existing_name = bucket.get(key, {}).get("category_name")
+        key = (ov.period, ov.size_id)
         bucket[key] = {
             "period": ov.period,
-            "category_id": ov.category_id,
-            "category_name": existing_name,
+            "size_id": ov.size_id,
+            "size_name": size.size_name if size else None,
             "total_count": int(ov.total_count),
         }
 
     return bucket
 
 
-def list_aggregate(period_type: str) -> List[Dict[str, Any]]:
-    bucket = _bucket_records(period_type)
-    keys = sorted(bucket.keys(), reverse=True)
-    return [bucket[k] for k in keys]
+def list_aggregate_total(period_type: str) -> List[Dict[str, Any]]:
+    qs = HarvestRecord.objects.all().only("occurred_at", "count")
+    bucket: Dict[str, int] = defaultdict(int)
+    for rec in qs.iterator():
+        period = _period_of(rec.occurred_at, period_type)
+        bucket[period] += int(rec.count)
+
+    items = [{"period": period, "total_count": total} for period, total in bucket.items()]
+    items.sort(key=lambda x: x["period"], reverse=True)
+    return items
 
 
-def list_aggregate_by_category(period_type: str, category_id: str) -> List[Dict[str, Any]]:
-    _require_defined_category(category_id)
-
-    bucket = _bucket_records(period_type, category_id=category_id)
+def list_aggregate_by_size(period_type: str, size_id: str) -> List[Dict[str, Any]]:
+    bucket = _bucket_records(period_type, size_id=size_id)
     keys = sorted(bucket.keys(), reverse=True)
     return [bucket[k] for k in keys]
 
 
 @transaction.atomic
-def upsert_override(period_type: str, category_id: str, period: str, total_count: int) -> HarvestAggregateOverride:
-    _require_defined_category(category_id)
+def upsert_override(period_type: str, size_id: str, period: str, total_count: int) -> HarvestAggregateOverride:
+    size = _require_defined_size(size_id)
 
     if not isinstance(total_count, int) or isinstance(total_count, bool):
         raise ValidationError({"total_count": "must be an integer"})
@@ -188,8 +209,8 @@ def upsert_override(period_type: str, category_id: str, period: str, total_count
 
     obj, _ = HarvestAggregateOverride.objects.update_or_create(
         period_type=period_type,
-        category_id=category_id,
+        size=size,
         period=period,
-        defaults={"total_count": total_count},
+        defaults={"size_name": size.size_name, "total_count": total_count},
     )
     return obj

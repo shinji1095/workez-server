@@ -6,6 +6,7 @@ ETM2025で作成する椎茸自動仕分けシステムのプロトタイプ開�
 
 - [workez-server](#workez-server)
 - [システム構成](#システム構成)
+- [ドキュメント](#ドキュメント)
 - [Commit Message Guidelines](#commit-message-guidelines)
 - [ブランチ管理](#ブランチ管理)
 - [使い方](#使い方)
@@ -32,6 +33,13 @@ ETM2025で作成する椎茸自動仕分けシステムのプロトタイプ開�
 | IoT通信プロトコル          | mqtt-broker         | TBD       |
 | IoTデバイス      | Raspberry Pi        | 5          |
 | Raspberry Pi OS  | Ubuntu              | 24.04 LTS  |
+
+# ドキュメント
+
+- API仕様: `docs/api/openapi.yaml`
+- 認証・認可: `docs/auth/auth_design.md`
+- DB定義: `docs/db/schema.md`
+- テスト: `docs/test/test_strategy.md`
 
 
 # Commit Message Guidelines
@@ -78,12 +86,35 @@ dockerコンテナを起動する．
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
 ```
 
+npmサーバーを起動する．
+
+```shell
+npm start
+```
+
+JWTトークンを取得する．
+
+```shell
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml exec -T api python tools/issue_jwt.py --role user --sub user_001
+```
+
 ## 1.3 実行確認
-TBD
+
+ホストPCから収穫登録するときはJWTトークンを使って以下のURLでアクセスする．
+
+`http://localhost:3000/harvest_register.html?jwt={JWTトークン}`
+
+ホストPCから収穫一覧（タブレット）を確認するときは以下のURLでアクセスする．
+
+`http://localhost:3000/harvest_list.html?jwt={JWTトークン}`
+
+データベースに保存されたことを確認する（最新20件の収穫レコードを表示）．
+
+```shell
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml exec -T db sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT created_at, occurred_at, lot_name, size_id, rank_id, count, event_id FROM harvest_records ORDER BY created_at DESC LIMIT 20;"'
+```
 
 ## 2. 本番環境
 
 
 TBD
-
-

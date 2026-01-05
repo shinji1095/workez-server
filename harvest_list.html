@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>収穫一覧（タブレット）</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      body {
+        background: var(--bs-body-bg);
+      }
+
+      .page {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      }
+
+      .table-responsive {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: calc(100vh - 232px);
+      }
+
+      #recordsTable th,
+      #recordsTable td {
+        vertical-align: middle;
+      }
+
+      #recordsTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: var(--bs-tertiary-bg);
+      }
+
+      .sort-btn {
+        color: var(--bs-body-color);
+      }
+
+      .sort-btn:hover {
+        color: var(--bs-primary);
+      }
+
+      .row-clickable {
+        cursor: pointer;
+      }
+
+      .mono {
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container-fluid page py-3 px-3 px-md-4">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <h1 class="h3 mb-1">収穫一覧</h1>
+          <div class="text-secondary">日付・ロットで検索し、タップして編集できます（表示: kg / 保存: g）</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <div class="form-floating">
+            <input class="form-control" id="dateInput" type="date" />
+            <label for="dateInput">日付</label>
+          </div>
+          <div class="form-floating">
+            <input class="form-control" id="lotInput" type="text" placeholder="例: 1e" />
+            <label for="lotInput">ロット（任意）</label>
+          </div>
+          <div class="form-floating">
+            <select class="form-select" id="pageSizeSelect">
+              <option value="20">20件</option>
+              <option value="50">50件</option>
+              <option value="100">100件</option>
+            </select>
+            <label for="pageSizeSelect">表示件数</label>
+          </div>
+          <button class="btn btn-primary btn-lg" id="searchBtn" type="button">検索</button>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <div class="text-secondary">
+          <span class="mono" id="resultMeta">-</span>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary" id="resetSortBtn" type="button">並び替え: デフォルト</button>
+          <button class="btn btn-outline-secondary" id="refreshBtn" type="button">更新</button>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" id="recordsTable">
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <button class="btn btn-link p-0 text-decoration-none sort-btn" data-sort="occurred_at" type="button">
+                      日付 <span class="mono" data-sort-indicator></span>
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button class="btn btn-link p-0 text-decoration-none sort-btn" data-sort="lot" type="button">
+                      ロット <span class="mono" data-sort-indicator></span>
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button class="btn btn-link p-0 text-decoration-none sort-btn" data-sort="size" type="button">
+                      サイズ <span class="mono" data-sort-indicator></span>
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button class="btn btn-link p-0 text-decoration-none sort-btn" data-sort="rank" type="button">
+                      ランク <span class="mono" data-sort-indicator></span>
+                    </button>
+                  </th>
+                  <th scope="col" class="text-end">
+                    <button class="btn btn-link p-0 text-decoration-none sort-btn" data-sort="count" type="button">
+                      収穫量(kg) <span class="mono" data-sort-indicator></span>
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button class="btn btn-link p-0 text-decoration-none sort-btn" data-sort="created_at" type="button">
+                      登録日時 <span class="mono" data-sort-indicator></span>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <nav aria-label="ページング" class="mt-3">
+        <ul class="pagination pagination-lg justify-content-center mb-0" id="pagination"></ul>
+      </nav>
+    </main>
+
+    <div
+      aria-hidden="true"
+      aria-labelledby="editModalLabel"
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="editModalLabel">収穫レコード編集</h2>
+            <button aria-label="閉じる" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+          </div>
+          <div class="modal-body">
+            <input id="editRecordId" type="hidden" />
+            <input id="editOriginalDate" type="hidden" />
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input class="form-control" id="editDate" type="date" />
+                  <label for="editDate">日付</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input class="form-control" id="editLot" type="text" placeholder="例: 1e" />
+                  <label for="editLot">ロット</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editSize"></select>
+                  <label for="editSize">サイズ</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editRank"></select>
+                  <label for="editRank">ランク</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-floating">
+                  <input class="form-control mono" id="editKg" inputmode="decimal" min="0" step="0.001" type="number" />
+                  <label for="editKg">収穫量(kg)</label>
+                </div>
+                <div class="form-text">保存時は g に変換します（四捨五入）。</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer d-flex justify-content-between">
+            <button class="btn btn-outline-danger" id="deleteBtn" type="button">削除</button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">キャンセル</button>
+              <button class="btn btn-primary" id="saveBtn" type="button">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        class="toast text-bg-primary border-0"
+        id="appToast"
+        role="alert"
+      >
+        <div class="d-flex">
+          <div class="toast-body" id="toastBody"></div>
+          <button
+            aria-label="閉じる"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            type="button"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      const apiBaseParam = new URLSearchParams(window.location.search).get('apiBase')?.trim()
+      const API_BASE =
+        apiBaseParam ?? (window.location.protocol === 'file:' ? 'http://localhost:3000' : '')
+
+      const jwtParam = new URLSearchParams(window.location.search).get('jwt')?.trim()
+      let jwt = ''
+      try {
+        if (jwtParam) {
+          jwt = jwtParam
+          window.localStorage?.setItem('workez_jwt', jwtParam)
+        } else {
+          jwt = window.localStorage?.getItem('workez_jwt')?.trim() || ''
+        }
+      } catch {
+        jwt = jwtParam || ''
+      }
+
+      const AUTH_HEADER = jwt
+        ? { Authorization: jwt.startsWith('Bearer ') ? jwt : `Bearer ${jwt}` }
+        : {}
+
+      const SIZE_OPTIONS = [
+        { id: 'L', label: 'L' },
+        { id: 'M', label: 'M' },
+        { id: 'S', label: 'S' },
+        { id: 'SS', label: 'SS' },
+        { id: '3S', label: '3S' },
+        { id: '小', label: '極小' },
+        { id: '黒', label: '黒' },
+      ]
+
+      const RANK_OPTIONS = [
+        { id: 'A', label: 'A品' },
+        { id: 'B', label: 'B品' },
+        { id: 'C', label: 'C品' },
+        { id: '小', label: '小' },
+        { id: '廃棄', label: '廃棄' },
+      ]
+
+      const els = {
+        dateInput: document.getElementById('dateInput'),
+        lotInput: document.getElementById('lotInput'),
+        pageSizeSelect: document.getElementById('pageSizeSelect'),
+        searchBtn: document.getElementById('searchBtn'),
+        refreshBtn: document.getElementById('refreshBtn'),
+        resetSortBtn: document.getElementById('resetSortBtn'),
+        resultMeta: document.getElementById('resultMeta'),
+        tableBody: document.getElementById('tableBody'),
+        pagination: document.getElementById('pagination'),
+        sortButtons: Array.from(document.querySelectorAll('.sort-btn')),
+
+        editModal: document.getElementById('editModal'),
+        editRecordId: document.getElementById('editRecordId'),
+        editOriginalDate: document.getElementById('editOriginalDate'),
+        editDate: document.getElementById('editDate'),
+        editLot: document.getElementById('editLot'),
+        editSize: document.getElementById('editSize'),
+        editRank: document.getElementById('editRank'),
+        editKg: document.getElementById('editKg'),
+        saveBtn: document.getElementById('saveBtn'),
+        deleteBtn: document.getElementById('deleteBtn'),
+
+        toast: document.getElementById('appToast'),
+        toastBody: document.getElementById('toastBody'),
+      }
+
+      const toast = bootstrap.Toast.getOrCreateInstance(els.toast, { delay: 3500 })
+      const editModal = bootstrap.Modal.getOrCreateInstance(els.editModal)
+
+      const state = {
+        page: 1,
+        pageSize: 20,
+        total: 0,
+        sort: 'default',
+        order: 'asc',
+        items: [],
+        loading: false,
+      }
+
+      function showToast(message, variant = 'primary') {
+        els.toast.className = `toast text-bg-${variant} border-0`
+        els.toastBody.textContent = message
+        toast.show()
+      }
+
+      function todayIso() {
+        const d = new Date()
+        const yyyy = d.getFullYear()
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        return `${yyyy}-${mm}-${dd}`
+      }
+
+      function formatIsoDate(iso) {
+        if (!iso) return ''
+        if (typeof iso === 'string' && iso.length >= 10) return iso.slice(0, 10)
+        return String(iso)
+      }
+
+      function formatDateTime(iso) {
+        if (!iso) return ''
+        const d = new Date(iso)
+        if (!Number.isFinite(d.getTime())) return String(iso)
+        return d.toLocaleString('ja-JP', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      }
+
+      function gramsToKgString(grams) {
+        if (!Number.isFinite(grams)) return ''
+        const kg = grams / 1000
+        let s = kg.toFixed(3)
+        s = s.replace(/\.?0+$/, '')
+        return s
+      }
+
+      function buildListUrl() {
+        const date = els.dateInput.value
+        if (!date) throw new Error('日付を入力してください。')
+
+        const url = new URL(`${API_BASE}/tablet/harvest/${date}`, window.location.href)
+        url.searchParams.set('page', String(state.page))
+        url.searchParams.set('page_size', String(state.pageSize))
+        url.searchParams.set('sort', state.sort)
+        url.searchParams.set('order', state.order)
+
+        const lot = els.lotInput.value.trim()
+        if (lot) url.searchParams.set('lot', lot)
+
+        return url
+      }
+
+      function setLoading(isLoading) {
+        state.loading = isLoading
+        els.searchBtn.disabled = isLoading
+        els.refreshBtn.disabled = isLoading
+        els.pageSizeSelect.disabled = isLoading
+        els.dateInput.disabled = isLoading
+        els.lotInput.disabled = isLoading
+      }
+
+      async function fetchJsonOrThrow(res) {
+        const text = await res.text().catch(() => '')
+        let json = null
+        try {
+          json = text ? JSON.parse(text) : null
+        } catch {
+          json = null
+        }
+
+        if (res.ok && json) return json
+
+        const detail = json?.error?.message || json?.detail || text || `${res.status} ${res.statusText}`
+        throw new Error(detail)
+      }
+
+      async function loadList() {
+        const url = buildListUrl()
+        setLoading(true)
+        try {
+          const res = await fetch(url.toString(), { headers: { ...AUTH_HEADER } })
+          const json = await fetchJsonOrThrow(res)
+          const data = json?.data
+          state.items = Array.isArray(data?.items) ? data.items : []
+          state.page = Number(data?.page || 1)
+          state.pageSize = Number(data?.page_size || state.pageSize)
+          state.total = Number(data?.total || 0)
+          render()
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      function renderSortIndicators() {
+        for (const btn of els.sortButtons) {
+          const sortKey = btn.getAttribute('data-sort')
+          const indicator = btn.querySelector('[data-sort-indicator]')
+          if (!indicator) continue
+
+          if (state.sort === sortKey) {
+            indicator.textContent = state.order === 'asc' ? '▲' : '▼'
+          } else {
+            indicator.textContent = ''
+          }
+        }
+
+        els.resetSortBtn.textContent = `並び替え: ${state.sort === 'default' ? 'デフォルト' : state.sort}`
+      }
+
+      function renderMeta() {
+        const totalPages = Math.max(1, Math.ceil(state.total / state.pageSize))
+        els.resultMeta.textContent = `件数 ${state.total} / ページ ${state.page} / ${totalPages}`
+      }
+
+      function renderTable() {
+        if (!state.items.length) {
+          els.tableBody.innerHTML =
+            '<tr><td class="text-center text-secondary py-4" colspan="6">データがありません。</td></tr>'
+          return
+        }
+
+        els.tableBody.innerHTML = state.items
+          .map((r) => {
+            const occurredDate = formatIsoDate(r.occurred_at)
+            const createdAt = formatDateTime(r.created_at)
+            const kg = gramsToKgString(Number(r.count))
+            return `
+              <tr class="row-clickable" data-record-id="${r.id}">
+                <td class="mono">${occurredDate}</td>
+                <td>${escapeHtml(r.lot_name ?? '')}</td>
+                <td class="mono">${escapeHtml(r.size_id ?? '')}</td>
+                <td class="mono">${escapeHtml(r.rank_id ?? '')}</td>
+                <td class="text-end mono">${kg}</td>
+                <td class="mono">${createdAt}</td>
+              </tr>
+            `
+          })
+          .join('')
+      }
+
+      function pageItem(label, disabled, onClick, active = false) {
+        const li = document.createElement('li')
+        li.className = `page-item${disabled ? ' disabled' : ''}${active ? ' active' : ''}`
+
+        const a = document.createElement('button')
+        a.className = 'page-link'
+        a.type = 'button'
+        a.textContent = label
+        a.disabled = disabled
+        a.addEventListener('click', onClick)
+
+        li.appendChild(a)
+        return li
+      }
+
+      function renderPagination() {
+        els.pagination.innerHTML = ''
+        const totalPages = Math.max(1, Math.ceil(state.total / state.pageSize))
+        const current = Math.min(Math.max(1, state.page), totalPages)
+
+        els.pagination.appendChild(
+          pageItem('«', current === 1, () => {
+            state.page = 1
+            loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+          })
+        )
+        els.pagination.appendChild(
+          pageItem('‹', current === 1, () => {
+            state.page = current - 1
+            loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+          })
+        )
+
+        const windowSize = 5
+        let start = Math.max(1, current - Math.floor(windowSize / 2))
+        let end = Math.min(totalPages, start + windowSize - 1)
+        start = Math.max(1, end - windowSize + 1)
+
+        for (let p = start; p <= end; p++) {
+          els.pagination.appendChild(
+            pageItem(String(p), false, () => {
+              state.page = p
+              loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+            }, p === current)
+          )
+        }
+
+        els.pagination.appendChild(
+          pageItem('›', current === totalPages, () => {
+            state.page = current + 1
+            loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+          })
+        )
+        els.pagination.appendChild(
+          pageItem('»', current === totalPages, () => {
+            state.page = totalPages
+            loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+          })
+        )
+      }
+
+      function render() {
+        renderSortIndicators()
+        renderMeta()
+        renderTable()
+        renderPagination()
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;')
+      }
+
+      function fillSelect(selectEl, options) {
+        selectEl.innerHTML = options.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.label)}</option>`).join('')
+      }
+
+      function openEditModal(record) {
+        els.editRecordId.value = record.id
+        els.editOriginalDate.value = formatIsoDate(record.occurred_at)
+        els.editDate.value = formatIsoDate(record.occurred_at)
+        els.editLot.value = record.lot_name || ''
+        els.editSize.value = record.size_id || ''
+        els.editRank.value = record.rank_id || ''
+        els.editKg.value = gramsToKgString(Number(record.count))
+
+        els.saveBtn.disabled = false
+        els.deleteBtn.disabled = false
+        editModal.show()
+      }
+
+      async function saveEdit() {
+        const id = els.editRecordId.value.trim()
+        const originalDate = els.editOriginalDate.value.trim() || els.dateInput.value.trim()
+        const date = els.editDate.value.trim()
+        const lot = els.editLot.value.trim()
+        const size = els.editSize.value
+        const rank = els.editRank.value
+
+        const kgRaw = els.editKg.value
+        const kg = Number.parseFloat(kgRaw)
+
+        if (!id) throw new Error('IDが不正です。')
+        if (!date) throw new Error('日付を入力してください。')
+        if (!lot) throw new Error('ロットを入力してください。')
+        if (!size) throw new Error('サイズを選択してください。')
+        if (!rank) throw new Error('ランクを選択してください。')
+        if (!Number.isFinite(kg) || kg < 0) throw new Error('収穫量（kg）が不正です。')
+
+        const grams = Math.round(kg * 1000)
+        if (!Number.isFinite(grams) || grams < 0) throw new Error('収穫量（kg）が不正です。')
+
+        const url = new URL(`${API_BASE}/tablet/harvest/${originalDate}`, window.location.href)
+        url.searchParams.set('id', id)
+
+        els.saveBtn.disabled = true
+        els.deleteBtn.disabled = true
+
+        try {
+          const res = await fetch(url.toString(), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
+            body: JSON.stringify({ date, lot, size, rank, count: grams }),
+          })
+          await fetchJsonOrThrow(res)
+          showToast('保存しました。', 'success')
+          editModal.hide()
+          await loadList()
+        } finally {
+          els.saveBtn.disabled = false
+          els.deleteBtn.disabled = false
+        }
+      }
+
+      async function deleteRecord() {
+        const id = els.editRecordId.value.trim()
+        const originalDate = els.editOriginalDate.value.trim() || els.dateInput.value.trim()
+        if (!id) throw new Error('IDが不正です。')
+
+        if (!window.confirm('このレコードを削除します。よろしいですか？')) return
+
+        const url = new URL(`${API_BASE}/tablet/harvest/${originalDate}`, window.location.href)
+        url.searchParams.set('id', id)
+
+        els.saveBtn.disabled = true
+        els.deleteBtn.disabled = true
+
+        try {
+          const res = await fetch(url.toString(), { method: 'DELETE', headers: { ...AUTH_HEADER } })
+          await fetchJsonOrThrow(res)
+          showToast('削除しました。', 'success')
+          editModal.hide()
+
+          const totalAfter = Math.max(0, state.total - 1)
+          const totalPagesAfter = Math.max(1, Math.ceil(totalAfter / state.pageSize))
+          if (state.page > totalPagesAfter) state.page = totalPagesAfter
+
+          await loadList()
+        } finally {
+          els.saveBtn.disabled = false
+          els.deleteBtn.disabled = false
+        }
+      }
+
+      function onSort(sortKey) {
+        if (state.sort === sortKey) {
+          state.order = state.order === 'asc' ? 'desc' : 'asc'
+        } else {
+          state.sort = sortKey
+          state.order = 'asc'
+        }
+        state.page = 1
+        loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+      }
+
+      function wireEvents() {
+        els.searchBtn.addEventListener('click', () => {
+          state.page = 1
+          loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+        })
+
+        els.refreshBtn.addEventListener('click', () => {
+          loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+        })
+
+        els.resetSortBtn.addEventListener('click', () => {
+          state.sort = 'default'
+          state.order = 'asc'
+          state.page = 1
+          loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+        })
+
+        els.pageSizeSelect.addEventListener('change', () => {
+          state.pageSize = Number(els.pageSizeSelect.value) || 20
+          state.page = 1
+          loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+        })
+
+        els.lotInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            state.page = 1
+            loadList().catch((err) => showToast(String(err.message || err), 'danger'))
+          }
+        })
+
+        els.sortButtons.forEach((btn) => {
+          btn.addEventListener('click', () => onSort(btn.getAttribute('data-sort') || 'default'))
+        })
+
+        els.tableBody.addEventListener('click', (e) => {
+          const tr = e.target.closest('tr[data-record-id]')
+          if (!tr) return
+          const id = tr.getAttribute('data-record-id')
+          const record = state.items.find((r) => r.id === id)
+          if (!record) return
+          openEditModal(record)
+        })
+
+        els.saveBtn.addEventListener('click', () => {
+          saveEdit().catch((e) => showToast(String(e.message || e), 'danger'))
+        })
+
+        els.deleteBtn.addEventListener('click', () => {
+          deleteRecord().catch((e) => showToast(String(e.message || e), 'danger'))
+        })
+      }
+
+      function init() {
+        fillSelect(els.editSize, SIZE_OPTIONS)
+        fillSelect(els.editRank, RANK_OPTIONS)
+
+        els.dateInput.value = todayIso()
+        els.pageSizeSelect.value = String(state.pageSize)
+
+        wireEvents()
+        loadList().catch((e) => showToast(String(e.message || e), 'danger'))
+      }
+
+      init()
+    </script>
+  </body>
+</html>
+

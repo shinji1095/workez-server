@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>収穫登録（タブレット）</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      :root {
+        --size-col-width: 96px;
+        --rank-col-width: 104px;
+        --lot-col-min-width: 200px;
+      }
+
+      body {
+        background: var(--bs-body-bg);
+      }
+
+      .page {
+        padding-bottom: 132px;
+      }
+
+      .table-responsive {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #harvestTable th,
+      #harvestTable td {
+        vertical-align: middle;
+      }
+
+      #harvestTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: var(--bs-tertiary-bg);
+      }
+
+      .sticky-size,
+      .sticky-rank {
+        position: sticky;
+        z-index: 6;
+        background: var(--bs-body-bg);
+      }
+
+      #harvestTable thead .sticky-size,
+      #harvestTable thead .sticky-rank {
+        z-index: 7;
+        background: var(--bs-tertiary-bg);
+      }
+
+      .sticky-size {
+        left: 0;
+        min-width: var(--size-col-width);
+        width: var(--size-col-width);
+      }
+
+      .sticky-rank {
+        left: var(--size-col-width);
+        min-width: var(--rank-col-width);
+        width: var(--rank-col-width);
+      }
+
+      .lot-col {
+        min-width: var(--lot-col-min-width);
+      }
+
+      .lot-name {
+        font-size: 1rem;
+      }
+
+      .harvest-input {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .bottom-bar {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+        background: rgba(var(--bs-body-bg-rgb), 0.96);
+        backdrop-filter: blur(10px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container-fluid page py-3 px-3 px-md-4">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <h1 class="h3 mb-1">収穫登録</h1>
+          <div class="text-secondary">サイズ × ランクをロット別に入力します（入力: kg / 送信: g）</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <div class="form-floating">
+            <input class="form-control" id="dateInput" type="date" />
+            <label for="dateInput">日付</label>
+          </div>
+          <button class="btn btn-outline-primary btn-lg" id="addLotBtn" type="button">＋ ロット追加</button>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive" id="tableScroll">
+            <table class="table table-bordered mb-0 align-middle" id="harvestTable">
+              <thead>
+                <tr id="headerRow">
+                  <th class="sticky-size text-center">サイズ</th>
+                  <th class="sticky-rank text-center">ランク</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="fixed-bottom border-top bottom-bar">
+      <div class="container-fluid py-3 px-3 px-md-4">
+        <button class="btn btn-primary btn-lg w-100 py-3" id="submitBtn" type="button">送信</button>
+        <div class="small text-secondary mt-2 text-center" id="statusText"></div>
+      </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        class="toast text-bg-primary border-0"
+        id="appToast"
+        role="alert"
+      >
+        <div class="d-flex">
+          <div class="toast-body" id="toastBody"></div>
+          <button
+            aria-label="閉じる"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            type="button"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      const SIZE_RANK_GROUPS = [
+        { sizeLabel: 'L', sizeId: 'L', ranks: [{ label: 'A品', id: 'A' }, { label: 'B品', id: 'B' }] },
+        { sizeLabel: 'M', sizeId: 'M', ranks: [{ label: 'A品', id: 'A' }, { label: 'B品', id: 'B' }] },
+        { sizeLabel: 'S', sizeId: 'S', ranks: [{ label: 'A品', id: 'A' }, { label: 'B品', id: 'B' }] },
+        { sizeLabel: 'SS', sizeId: 'SS', ranks: [{ label: 'A品', id: 'A' }, { label: 'B品', id: 'B' }] },
+        { sizeLabel: '3S', sizeId: '3S', ranks: [{ label: 'B品', id: 'B' }] },
+        { sizeLabel: '極小', sizeId: '極小', ranks: [{ label: '小', id: '小' }] },
+        { sizeLabel: '黒', sizeId: '黒', ranks: [{ label: 'C品', id: 'C' }] },
+      ]
+
+      const apiBaseParam = new URLSearchParams(window.location.search).get('apiBase')?.trim()
+      const API_BASE =
+        apiBaseParam ?? (window.location.protocol === 'file:' ? 'http://localhost:3000' : '')
+
+      const jwtParam = new URLSearchParams(window.location.search).get('jwt')?.trim()
+      let jwt = ''
+      try {
+        if (jwtParam) {
+          jwt = jwtParam
+          window.localStorage?.setItem('workez_jwt', jwtParam)
+        } else {
+          jwt = window.localStorage?.getItem('workez_jwt')?.trim() || ''
+        }
+      } catch {
+        jwt = jwtParam || ''
+      }
+
+      const AUTH_HEADER = jwt
+        ? { Authorization: jwt.startsWith('Bearer ') ? jwt : `Bearer ${jwt}` }
+        : {}
+
+      const state = {
+        lots: [
+          { id: 'lot-1', name: '1' },
+          { id: 'lot-2', name: '2' },
+          { id: 'lot-3', name: '3' },
+        ],
+        values: {},
+      }
+
+      const els = {
+        dateInput: document.getElementById('dateInput'),
+        addLotBtn: document.getElementById('addLotBtn'),
+        submitBtn: document.getElementById('submitBtn'),
+        headerRow: document.getElementById('headerRow'),
+        tableBody: document.getElementById('tableBody'),
+        tableScroll: document.getElementById('tableScroll'),
+        statusText: document.getElementById('statusText'),
+        toastEl: document.getElementById('appToast'),
+        toastBody: document.getElementById('toastBody'),
+      }
+
+      const toast = window.bootstrap ? window.bootstrap.Toast.getOrCreateInstance(els.toastEl) : null
+
+      function setStatus(text) {
+        els.statusText.textContent = text || ''
+      }
+
+      function showToast(message, variant = 'primary') {
+        if (!els.toastEl || !els.toastBody) return
+
+        els.toastEl.classList.remove('text-bg-primary', 'text-bg-success', 'text-bg-danger', 'text-bg-warning')
+        els.toastEl.classList.add(`text-bg-${variant}`)
+        els.toastBody.textContent = message
+
+        if (toast) toast.show()
+      }
+
+      function formatToday() {
+        const now = new Date()
+        const yyyy = now.getFullYear()
+        const mm = String(now.getMonth() + 1).padStart(2, '0')
+        const dd = String(now.getDate()).padStart(2, '0')
+        return `${yyyy}-${mm}-${dd}`
+      }
+
+      function makeKey(lotId, sizeId, rankId) {
+        return `${lotId}__${sizeId}__${rankId}`
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;')
+      }
+
+      function render() {
+        const lotHeadersHtml = state.lots
+          .map((lot, index) => {
+            const label = `ロット${index + 1}`
+            const removeDisabled = state.lots.length <= 1 ? 'disabled' : ''
+            return `
+              <th class="lot-col">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <span class="fw-semibold">${label}</span>
+                  <button
+                    class="btn btn-outline-danger btn-sm px-2 py-0 remove-lot"
+                    type="button"
+                    data-lot-id="${escapeHtml(lot.id)}"
+                    aria-label="${label}を削除"
+                    ${removeDisabled}
+                  >
+                    ×
+                  </button>
+                </div>
+                <input
+                  class="form-control lot-name"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  data-lot-id="${escapeHtml(lot.id)}"
+                  value="${escapeHtml(lot.name)}"
+                  placeholder="例: 1e"
+                  aria-label="${label}名"
+                />
+              </th>
+            `
+          })
+          .join('')
+
+        els.headerRow.innerHTML = `
+          <th class="sticky-size text-center">サイズ</th>
+          <th class="sticky-rank text-center">ランク</th>
+          ${lotHeadersHtml}
+        `
+
+        const rows = []
+        for (const group of SIZE_RANK_GROUPS) {
+          group.ranks.forEach((rank, rankIndex) => {
+            const cells = []
+            if (rankIndex === 0) {
+              cells.push(`
+                <th class="sticky-size text-center fw-semibold" rowspan="${group.ranks.length}">
+                  ${escapeHtml(group.sizeLabel)}
+                </th>
+              `)
+            }
+
+            cells.push(`
+              <th class="sticky-rank text-center">
+                ${escapeHtml(rank.label)}
+              </th>
+            `)
+
+            for (const lot of state.lots) {
+              const key = makeKey(lot.id, group.sizeId, rank.id)
+              const value = state.values[key] ?? ''
+              const aria = `${group.sizeLabel} ${rank.label} ${lot.name}`
+              cells.push(`
+                <td class="lot-col">
+                  <input
+                    class="form-control form-control-lg text-end harvest-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.1"
+                    placeholder=""
+                    autocomplete="off"
+                    data-lot-id="${escapeHtml(lot.id)}"
+                    data-size-id="${escapeHtml(group.sizeId)}"
+                    data-rank-id="${escapeHtml(rank.id)}"
+                    aria-label="${escapeHtml(aria)}の重量（kg）"
+                    value="${escapeHtml(value)}"
+                  />
+                </td>
+              `)
+            }
+
+            rows.push(`<tr>${cells.join('')}</tr>`)
+          })
+        }
+
+        els.tableBody.innerHTML = rows.join('')
+      }
+
+      function nextLotName() {
+        const nums = state.lots
+          .map((lot) => Number.parseInt(lot.name, 10))
+          .filter((n) => Number.isFinite(n))
+        const max = nums.length ? Math.max(...nums) : state.lots.length
+        return String(max + 1)
+      }
+
+      function addLot() {
+        const id = `lot-${Date.now()}-${Math.random().toString(16).slice(2)}`
+        state.lots.push({ id, name: nextLotName() })
+        render()
+
+        requestAnimationFrame(() => {
+          els.tableScroll.scrollLeft = els.tableScroll.scrollWidth
+        })
+      }
+
+      function removeLot(lotId) {
+        if (state.lots.length <= 1) return
+        state.lots = state.lots.filter((lot) => lot.id !== lotId)
+        for (const key of Object.keys(state.values)) {
+          if (key.startsWith(`${lotId}__`)) delete state.values[key]
+        }
+        render()
+      }
+
+      function setLotName(lotId, name) {
+        const lot = state.lots.find((l) => l.id === lotId)
+        if (!lot) return
+        lot.name = name
+      }
+
+      function setValue(lotId, sizeId, rankId, value) {
+        const key = makeKey(lotId, sizeId, rankId)
+        if (value === '') {
+          delete state.values[key]
+          return
+        }
+        state.values[key] = value
+      }
+
+      function validate() {
+        const date = els.dateInput.value
+        if (!date) return { ok: false, message: '日付を入力してください。' }
+
+        for (const lot of state.lots) {
+          if (!lot.name || !lot.name.trim()) return { ok: false, message: 'ロット名が空の列があります。' }
+        }
+
+        for (const [key, raw] of Object.entries(state.values)) {
+          const value = Number.parseFloat(raw)
+          if (!Number.isFinite(value) || value < 0) return { ok: false, message: '入力値（重量）が不正です。' }
+
+          const grams = Math.round(value * 1000)
+          if (!Number.isFinite(grams) || grams < 0) return { ok: false, message: '入力値（重量）が不正です。' }
+        }
+
+        return { ok: true }
+      }
+
+      function toApiSize(sizeId) {
+        if (sizeId === '極小') return '小'
+        return sizeId
+      }
+
+      async function submitAll() {
+        const validation = validate()
+        if (!validation.ok) {
+          showToast(validation.message, 'danger')
+          return
+        }
+
+        const date = els.dateInput.value
+        const entries = []
+
+        for (const [key, raw] of Object.entries(state.values)) {
+          const [lotId, sizeId, rankId] = key.split('__')
+          const lotName = state.lots.find((l) => l.id === lotId)?.name
+          if (!lotName) continue
+          entries.push({
+            date,
+            lot: lotName,
+            size: toApiSize(sizeId),
+            rank: rankId,
+            kg: Number.parseFloat(raw),
+          })
+        }
+
+        if (entries.length === 0) {
+          showToast('入力がありません。', 'warning')
+          return
+        }
+
+        els.submitBtn.disabled = true
+        setStatus(`送信中…（${entries.length}件）`)
+
+        const results = await Promise.allSettled(
+          entries.map(async (entry) => {
+            const url = new URL(`${API_BASE}/tablet/harvest/${entry.date}`, window.location.href)
+            url.searchParams.set('lot', entry.lot)
+            url.searchParams.set('size', entry.size)
+            url.searchParams.set('rank', entry.rank)
+
+            const grams = Math.round(entry.kg * 1000)
+
+            const res = await fetch(url.toString(), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...AUTH_HEADER },
+              body: JSON.stringify({ count: grams }),
+            })
+
+            if (!res.ok) {
+              const text = await res.text().catch(() => '')
+              throw new Error(`${res.status} ${res.statusText}${text ? `: ${text}` : ''}`)
+            }
+
+            return true
+          })
+        )
+
+        const okCount = results.filter((r) => r.status === 'fulfilled').length
+        const ngCount = results.length - okCount
+
+        if (ngCount === 0) {
+          showToast(`送信しました（${okCount}件）`, 'success')
+          setStatus('')
+        } else {
+          showToast(`一部失敗しました（成功${okCount}件 / 失敗${ngCount}件）`, 'danger')
+          setStatus('API未実装/接続不可の場合は、送信先の実装後に再送してください。')
+          console.error('Submit errors:', results)
+        }
+      }
+
+      function wireEvents() {
+        els.addLotBtn.addEventListener('click', () => addLot())
+        els.submitBtn.addEventListener('click', () => submitAll())
+
+        document.addEventListener('input', (event) => {
+          const target = event.target
+          if (!(target instanceof HTMLElement)) return
+
+          if (target.classList.contains('lot-name')) {
+            const lotId = target.getAttribute('data-lot-id')
+            if (!lotId) return
+            setLotName(lotId, target.value)
+            return
+          }
+
+          if (target.classList.contains('harvest-input')) {
+            const lotId = target.getAttribute('data-lot-id')
+            const sizeId = target.getAttribute('data-size-id')
+            const rankId = target.getAttribute('data-rank-id')
+            if (!lotId || !sizeId || !rankId) return
+
+            setValue(lotId, sizeId, rankId, target.value.trim())
+          }
+        })
+
+        document.addEventListener('click', (event) => {
+          const target = event.target
+          if (!(target instanceof HTMLElement)) return
+          if (!target.classList.contains('remove-lot')) return
+          const lotId = target.getAttribute('data-lot-id')
+          if (!lotId) return
+
+          const lotName = state.lots.find((l) => l.id === lotId)?.name ?? ''
+          if (!window.confirm(`ロット「${lotName || '（未入力）'}」の列を削除しますか？`)) return
+          removeLot(lotId)
+        })
+      }
+
+      function init() {
+        els.dateInput.value = formatToday()
+        render()
+        wireEvents()
+      }
+
+      init()
+    </script>
+  </body>
+</html>

@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import argparse
 import os
+from pathlib import Path
+import sys
 
 import django
 
@@ -23,6 +25,10 @@ def main() -> int:
     parser.add_argument("--sub", required=True)
     parser.add_argument("--ttl", type=int, default=3600)
     args = parser.parse_args()
+
+    # Ensure project root is importable even when executed as "python tools/issue_jwt.py".
+    project_root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(project_root))
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
     django.setup()

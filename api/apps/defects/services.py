@@ -27,6 +27,8 @@ def add_record(data: Dict[str, Any]) -> DefectsRecord:
     event_id = data.get("event_id")
     if not event_id:
         raise ValidationError({"event_id": ["This field is required."]})
+    if not data.get("category_id"):
+        raise ValidationError({"category_id": ["This field is required."]})
 
     if DefectsRecord.objects.filter(event_id=event_id).exists():
         raise ConflictError({"event_id": ["duplicate event_id"]})
@@ -34,7 +36,6 @@ def add_record(data: Dict[str, Any]) -> DefectsRecord:
     try:
         rec = DefectsRecord.objects.create(
             event_id=event_id,
-            device_id=data["device_id"],
             category_id=data["category_id"],
             count=data["count"],
             occurred_at=data.get("occurred_at") or timezone.now(),
