@@ -10,10 +10,17 @@ info:
 
     '
 servers:
-- url: http://127.0.0.1:8000
-  description: ローカル開発
-- url: https://<render-service>.onrender.com
-  description: デプロイ環境
+- url: http://192.168.10.110
+  description: デモ用IP
+  variables:
+    host:
+      default: 192.168.10.110
+- url: https://bdaf4de6e6d3.ngrok-free.app
+  description: ngrok（開発）
+  variables:
+    subdomain:
+      default: 2744f5b04e3f
+      description: "ngrokのサブドメイン（例: 2744f5b04e3f）"
 tags:
 - name: admin
   description: 管理ユーザーに関する機能群
@@ -83,6 +90,14 @@ paths:
 
         '
       operationId: createAuthToken
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS -X POST "${BASE_URL}/auth/token" \
+            -H "X-API-KEY: ${USER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"sub":"user_001"}'
       security:
       - apiKeyAuth: []
       requestBody:
@@ -614,6 +629,14 @@ paths:
       summary: 収穫量の送信
       description: "ページ: 本日の収穫量の可視化\n権限（CSV記載）: \n説明: デバイスが前回送信以降の差分（インクリメント）をアップロード\nevent_id による冪等性を担保（重複は 409）\n"
       operationId: createHarvestAmountAdd
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS -X POST "${BASE_URL}/harvest/amount/add" \
+            -H "Authorization: Bearer ${DEVICE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"event_id":"550e8400-e29b-41d4-a716-446655440000","lot_name":"1e","size_id":"S","rank_id":"A","count":3,"occurred_at":"2025-12-15T12:34:56+09:00"}'
       requestBody:
         required: true
         content:
@@ -652,6 +675,12 @@ paths:
 
         '
       operationId: listHarvestAmountDaily
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS "${BASE_URL}/harvest/amount/daily?page=1&page_size=10" \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"
       responses:
         '200':
           description: 成功
@@ -1451,6 +1480,14 @@ paths:
 
         '
       operationId: createTabletHarvest
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS -X POST "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"count": 3}'
       parameters:
       - $ref: '#/components/parameters/datePath'
       - $ref: '#/components/parameters/tabletLot'
@@ -1489,6 +1526,12 @@ paths:
 
         '
       operationId: retrieveTabletHarvest
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"
       parameters:
       - $ref: '#/components/parameters/datePath'
       - $ref: '#/components/parameters/tabletLot'

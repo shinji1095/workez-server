@@ -84,6 +84,8 @@ dockerコンテナを起動する．
 
 ```shell
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
+
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up api -d --build
 ```
 
 npmサーバーを起動する．
@@ -112,6 +114,52 @@ docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.loc
 
 ```shell
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml exec -T db sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT created_at, occurred_at, lot_name, size_id, rank_id, count, event_id FROM harvest_records ORDER BY created_at DESC LIMIT 20;"'
+```
+
+### curlでAPIを叩いてDBのデータを取得する
+
+APIのベースURLは以下のどちらかを使う（起動方法に合わせて選択）．
+
+- Django直: `http://localhost:8000`
+- reverse-proxy（nginx）経由: `http://localhost/api`
+
+JWTを用意する（例: userロール）．
+
+```shell
+JWT=$(docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml exec -T api python tools/issue_jwt.py --role user --sub user_001)
+```
+
+例: 日間収穫量（DB集計）の取得．
+
+```shell
+BASE_URL="http://localhost:8000" # or http://localhost/api
+curl -sS -H "Authorization: Bearer $JWT" "$BASE_URL/harvest/amount/daily?page=1&page_size=10"
+```
+
+例: タブレット入力（DB）を登録して取得．
+
+```shell
+BASE_URL="http://localhost:8000" # or http://localhost/api
+DATE="2025-12-21"
+
+curl -sS -X POST "$BASE_URL/tablet/harvest/$DATE?lot=1e&size=S&rank=A" \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"count": 3}'
+
+curl -sS -H "Authorization: Bearer $JWT" "$BASE_URL/tablet/harvest/$DATE?lot=1e&size=S&rank=A"
+```
+
+（任意）APIキーからJWTを発行する場合は `POST /auth/token` を使う（レスポンスの `data.access_token` を利用）．
+
+```shell
+BASE_URL="http://localhost:8000" # or http://localhost/api
+USER_API_KEY="<.env.local の USER_API_KEY>"
+
+curl -sS -X POST "$BASE_URL/auth/token" \
+  -H "X-API-KEY: $USER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"sub":"user_001"}'
 ```
 
 ## 2. 本番環境
