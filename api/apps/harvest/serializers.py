@@ -45,6 +45,18 @@ class UpdateHarvestAmountOverrideRequestSerializer(serializers.Serializer):
         return v
 
 
+class UpdateHarvestTargetRequestSerializer(serializers.Serializer):
+    target_count = serializers.IntegerField()
+    effective_from = serializers.DateField(required=False, allow_null=True)
+
+    def validate_target_count(self, v):
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise serializers.ValidationError("must be an integer")
+        if v < 0:
+            raise serializers.ValidationError("must be >= 0")
+        return v
+
+
 class HarvestAggregateOverrideSerializer(serializers.ModelSerializer):
     size_id = serializers.CharField(source="size.size_id")
 

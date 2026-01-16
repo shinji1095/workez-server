@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ValidationError  # type: ignore
 
 from apps.common.errors import ConflictError
 
-from .models import HarvestAggregateOverride, HarvestRecord, Rank, Size
+from .models import HarvestAggregateOverride, HarvestRecord, HarvestTarget, Rank, Size
 
 PERIOD_DAILY = "daily"
 PERIOD_WEEKLY = "weekly"
@@ -24,6 +24,15 @@ def _require_defined_size(size_id: str) -> Size:
     if not size:
         raise NotFound(detail={"size_id": "size not found"})
     return size
+
+
+def _require_defined_rank(rank_id: str) -> Rank:
+    """Raise NotFound if rank_id is not registered in ranks master."""
+
+    rank = Rank.objects.filter(rank_id=rank_id).first()
+    if not rank:
+        raise NotFound(detail={"rank_id": "rank not found"})
+    return rank
 
 
 def _normalize_occurred_at(dt: datetime) -> datetime:
@@ -198,6 +207,72 @@ def list_aggregate_by_size(period_type: str, size_id: str) -> List[Dict[str, Any
     return [bucket[k] for k in keys]
 
 
+def list_aggregate_by_lot(period_type: str, lot_name: str) -> List[Dict[str, Any]]:
+    if not lot_name:
+        raise ValidationError({"lot_name": "required"})
+    qs = HarvestRecord.objects.filter(lot_name=lot_name).only("occurred_at", "count")
+    bucket: Dict[str, int] = defaultdict(int)
+    for rec in qs.iterator():
+        period = _period_of(rec.occurred_at, period_type)
+        bucket[period] += int(rec.count)
+
+    items = [
+        {
+            "period": period,
+            "lot_name": lot_name,
+            "total_count": total,
+        }
+        for period, total in bucket.items()
+    ]
+    items.sort(key=lambda x: x["period"], reverse=True)
+    return items
+
+
+def list_aggregate_by_rank(period_type: str, rank_id: str) -> List[Dict[str, Any]]:
+    rank = _require_defined_rank(rank_id)
+    qs = HarvestRecord.objects.filter(rank_id=rank_id).only("occurred_at", "rank", "count")
+    bucket: Dict[str, int] = defaultdict(int)
+    for rec in qs.iterator():
+        period = _period_of(rec.occurred_at, period_type)
+        bucket[period] += int(rec.count)
+
+    items = [
+        {
+            "period": period,
+            "rank_id": rank.rank_id,
+            "rank_name": rank.rank_name,
+            "total_count": total,
+        }
+        for period, total in bucket.items()
+    ]
+    items.sort(key=lambda x: x["period"], reverse=True)
+    return items
+
+
+def list_aggregate_by_size_rank(period_type: str, size_id: str, rank_id: str) -> List[Dict[str, Any]]:
+    size = _require_defined_size(size_id)
+    rank = _require_defined_rank(rank_id)
+    qs = HarvestRecord.objects.filter(size_id=size_id, rank_id=rank_id).only("occurred_at", "size", "rank", "count")
+    bucket: Dict[str, int] = defaultdict(int)
+    for rec in qs.iterator():
+        period = _period_of(rec.occurred_at, period_type)
+        bucket[period] += int(rec.count)
+
+    items = [
+        {
+            "period": period,
+            "size_id": size.size_id,
+            "size_name": size.size_name,
+            "rank_id": rank.rank_id,
+            "rank_name": rank.rank_name,
+            "total_count": total,
+        }
+        for period, total in bucket.items()
+    ]
+    items.sort(key=lambda x: x["period"], reverse=True)
+    return items
+
+
 @transaction.atomic
 def upsert_override(period_type: str, size_id: str, period: str, total_count: int) -> HarvestAggregateOverride:
     size = _require_defined_size(size_id)
@@ -212,5 +287,20 @@ def upsert_override(period_type: str, size_id: str, period: str, total_count: in
         size=size,
         period=period,
         defaults={"size_name": size.size_name, "total_count": total_count},
+    )
+    return obj
+
+
+def upsert_target(target_type: str, target_count: int) -> HarvestTarget:
+    if target_type not in {PERIOD_DAILY, PERIOD_WEEKLY, PERIOD_MONTHLY}:
+        raise ValidationError({"target_type": "invalid"})
+    if isinstance(target_count, bool) or not isinstance(target_count, int):
+        raise ValidationError({"target_count": "must be an integer"})
+    if target_count < 0:
+        raise ValidationError({"target_count": "must be >= 0"})
+
+    obj, _ = HarvestTarget.objects.update_or_create(
+        target_type=target_type,
+        defaults={"target_count": target_count},
     )
     return obj

@@ -1,6 +1,6 @@
 # curl コマンド例一覧
 
-このドキュメントは `docs/api/openapi.yaml` に定義されている全エンドポイント（計 37 paths / 50 operations）の curl 実行例です。
+このドキュメントは `docs/api/openapi.yaml` に定義されている全エンドポイント（計 35 paths / 45 operations）の curl 実行例です。
 
 ## 事前準備
 
@@ -16,7 +16,7 @@
 例（ローカル開発用: `tools/issue_jwt.py` でJWTを作成）:
 
 ```sh
-ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzAwMSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4MTgwNjc2LCJleHAiOjE3NjgxODQyNzZ9.pop8pd_yky84Db9hjfxtFA1WBrz3ApSVAFyhBTxL-zM
+ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzAwMSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4NTM1MjI4LCJleHAiOjE3Njg1Mzg4Mjh9.MrU87F3QNEnHj37O3_-PHwpja5pGziAiIaUQrLqBAtE
 ADMIN_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbl8wMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjgxODA3MjUsImV4cCI6MTc2ODE4NDMyNX0.x1fEQLgbdU4xLkJ_qJ7x0n_YRk8Id1S2WALpjFpGLxE
 BASE_URL="https://bb248eea47fd.ngrok-free.app/"
 ```
@@ -101,46 +101,6 @@ curl -sS "${BASE_URL}/defects/ratio/weekly?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 
-### GET /devices/{deviceId}/alarm
-- 故障アラーム
-
-```sh
-curl -sS "${BASE_URL}/devices/DEV001/alarm" \
-  -H "Authorization: Bearer ${ACCESS_TOKEN}"
-```
-### POST /devices/{deviceId}/alarm
-- 故障アラーム通知
-
-```sh
-curl -sS -X POST "${BASE_URL}/devices/DEV001/alarm" \
-  -H "Authorization: Bearer ${DEVICE_ACCESS_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"alarm_id":"550e8400-e29b-41d4-a716-446655440000","type":"battery_low","message":"バッテリー残量が低下しました","status":"open","occurred_at":"2025-12-15T12:34:56+09:00"}'
-```
-### GET /devices/{deviceId}/alarm/detail
-- 故障アラーム（詳細）
-
-```sh
-curl -sS "${BASE_URL}/devices/DEV001/alarm/detail?page=1&page_size=10" \
-  -H "Authorization: Bearer ${ACCESS_TOKEN}"
-```
-
-### GET /devices/{deviceId}/battery
-- バッテリー監視
-
-```sh
-curl -sS "${BASE_URL}/devices/DEV001/battery" \
-  -H "Authorization: Bearer ${ACCESS_TOKEN}"
-```
-### POST /devices/{deviceId}/battery
-- バッテリー状態送信
-
-```sh
-curl -sS -X POST "${BASE_URL}/devices/DEV001/battery" \
-  -H "Authorization: Bearer ${DEVICE_ACCESS_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"percent":80,"is_charging":false,"updated_at":"2025-12-21T12:34:56+09:00"}'
-```
 ### POST /harvest/amount/add
 - 収穫量の送信
 
@@ -172,6 +132,13 @@ curl -sS -X PATCH "${BASE_URL}/harvest/amount/daily/size/S?date=2025-12-21" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
+```
+### GET /harvest/amount/daily/lot/{lotName}
+- ロットごとの 日間収穫量
+
+```sh
+curl -sS "${BASE_URL}/harvest/amount/daily/lot/1e?page=1&page_size=10" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/daily/rank/{rankId}
 - 仕分けランクごとの 日間収穫量
@@ -211,6 +178,13 @@ curl -sS -X PATCH "${BASE_URL}/harvest/amount/monthly/size/S?month=2025-12" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
 ```
+### GET /harvest/amount/monthly/lot/{lotName}
+- ロットごとの 月間収穫量
+
+```sh
+curl -sS "${BASE_URL}/harvest/amount/monthly/lot/1e?page=1&page_size=10" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
+```
 ### GET /harvest/amount/monthly/rank/{rankId}
 - 仕分けランクごとの 月間収穫量
 
@@ -247,6 +221,13 @@ curl -sS -X PATCH "${BASE_URL}/harvest/amount/weekly/size/S?date=2025-12-21" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
+```
+### GET /harvest/amount/weekly/lot/{lotName}
+- ロットごとの 週間収穫量
+
+```sh
+curl -sS "${BASE_URL}/harvest/amount/weekly/lot/1e?page=1&page_size=10" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 
 ### GET /harvest/amount/weekly/rank/{rankId}

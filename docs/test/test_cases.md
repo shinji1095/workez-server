@@ -41,14 +41,14 @@
   - サーバーエラー時: 500 かつ ErrorResponse 形式
 
 ## TC-003
-- 対象operationId: `createDevicesAlerm`
-- 対象: 故障アラーム送信（POST /devices/{deviceId}/alerm）
+- 対象operationId: `createDevicesAlarm`
+- 対象: 故障アラーム送信（POST /devices/{deviceId}/alarm）
 - 前提
   - 対象APIが起動していること（BASE_URLはTBD）
   - 書き込み系のため、実行環境はローカル/検証環境を推奨（本番書き込みは原則禁止、TBD）
   - 認証の要否・方式はTBD（必要な場合のトークン/キー準備はTBD）
 - 手順
-  - POST /devices/{deviceId}/alerm にリクエストを送信する
+  - POST /devices/{deviceId}/alarm にリクエストを送信する
   - requestBodyはCSVに定義が無いため、まずは空JSON {} で試行し、実装仕様に合わせて調整（TBD）
 - 期待結果
   - ステータスコードが 201 であること
@@ -234,13 +234,13 @@
   - サーバーエラー時: 500 かつ ErrorResponse 形式
 
 ## TC-013
-- 対象operationId: `listAnalyticsRevenueYealy`
-- 対象: 年間売り上げ（GET /analytics/revenue/yealy）
+- 対象operationId: `listAnalyticsRevenueYearly`
+- 対象: 年間売り上げ（GET /analytics/revenue/yearly）
 - 前提
   - 対象APIが起動していること（BASE_URLはTBD）
   - 認証の要否・方式はTBD（必要な場合のトークン/キー準備はTBD）
 - 手順
-  - GET /analytics/revenue/yealy にリクエストを送信する
+  - GET /analytics/revenue/yearly にリクエストを送信する
 - 期待結果
   - ステータスコードが 200 であること
   - レスポンスがJSONであること
@@ -530,13 +530,13 @@
   - サーバーエラー時: 500 かつ ErrorResponse 形式
 
 ## TC-029
-- 対象operationId: `retrieveDevicesAlerm`
-- 対象: 故障アラーム（GET /devices/{deviceId}/alerm）
+- 対象operationId: `retrieveDevicesAlarm`
+- 対象: 故障アラーム（GET /devices/{deviceId}/alarm）
 - 前提
   - 対象APIが起動していること（BASE_URLはTBD）
   - 認証の要否・方式はTBD（必要な場合のトークン/キー準備はTBD）
 - 手順
-  - GET /devices/{deviceId}/alerm にリクエストを送信する
+  - GET /devices/{deviceId}/alarm にリクエストを送信する
 - 期待結果
   - ステータスコードが 200 であること
   - レスポンスがJSONであること
@@ -548,13 +548,13 @@
   - サーバーエラー時: 500 かつ ErrorResponse 形式
 
 ## TC-030
-- 対象operationId: `retrieveDevicesAlermDetail`
-- 対象: 故障アラーム（詳細）（GET /devices/{deviceId}/alerm/detail）
+- 対象operationId: `retrieveDevicesAlarmDetail`
+- 対象: 故障アラーム（詳細）（GET /devices/{deviceId}/alarm/detail）
 - 前提
   - 対象APIが起動していること（BASE_URLはTBD）
   - 認証の要否・方式はTBD（必要な場合のトークン/キー準備はTBD）
 - 手順
-  - GET /devices/{deviceId}/alerm/detail にリクエストを送信する
+  - GET /devices/{deviceId}/alarm/detail にリクエストを送信する
 - 期待結果
   - ステータスコードが 200 であること
   - レスポンスがJSONであること

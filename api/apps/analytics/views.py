@@ -22,7 +22,7 @@ class AnalyticsRevenueMonthlyView(APIView):
         items = services.list_revenue_monthly()
         return Response(success_envelope(request, paginate_list(items, page, page_size)), status=status.HTTP_200_OK)
 
-class AnalyticsRevenueYealyView(APIView):
+class AnalyticsRevenueYearlyView(APIView):
     permission_classes = [RoleAdminOnly]
     def get(self, request):
         page, page_size = parse_page_params(request.query_params)

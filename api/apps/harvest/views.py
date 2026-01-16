@@ -20,6 +20,7 @@ from .serializers import (
     CreateHarvestAmountAddRequestSerializer,
     HarvestRecordSerializer,
     UpdateHarvestAmountOverrideRequestSerializer,
+    UpdateHarvestTargetRequestSerializer,
 )
 from . import services
 
@@ -49,6 +50,15 @@ def _parse_path_date(raw: str) -> date:
         return date.fromisoformat(raw)
     except ValueError as e:
         raise ValidationError({"date": "Invalid ISO date (YYYY-MM-DD)."}) from e
+
+
+def _build_target_payload(target, effective_from: date | None) -> dict:
+    return {
+        "target_type": target.target_type,
+        "target_count": target.target_count,
+        "effective_from": effective_from,
+        "updated_at": target.updated_at,
+    }
 
 
 class TabletHarvestView(APIView):
@@ -521,3 +531,126 @@ class RetrieveHarvestMonthlySizeView(APIView):
         )
         out = {"period": ov.period, "size_id": ov.size_id, "size_name": ov.size_name, "total_count": ov.total_count}
         return Response(success_response(request, out))
+
+
+class RetrieveHarvestDailyLotView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, lot_name: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_lot(period_type="daily", lot_name=lot_name)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestWeeklyLotView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, lot_name: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_lot(period_type="weekly", lot_name=lot_name)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestMonthlyLotView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, lot_name: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_lot(period_type="monthly", lot_name=lot_name)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestDailyRankView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, rank_id: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_rank(period_type="daily", rank_id=rank_id)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestWeeklyRankView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, rank_id: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_rank(period_type="weekly", rank_id=rank_id)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestMonthlyRankView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, rank_id: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_rank(period_type="monthly", rank_id=rank_id)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestDailySizeRankView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, size_id: str, rank_id: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_size_rank(period_type="daily", size_id=size_id, rank_id=rank_id)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestWeeklySizeRankView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, size_id: str, rank_id: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_size_rank(period_type="weekly", size_id=size_id, rank_id=rank_id)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class RetrieveHarvestMonthlySizeRankView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request, size_id: str, rank_id: str):
+        page, page_size = parse_page_params(request.query_params)
+        items = services.list_aggregate_by_size_rank(period_type="monthly", size_id=size_id, rank_id=rank_id)
+        payload = paginate_list(items, page, page_size)
+        return Response(success_response(request, payload))
+
+
+class UpdateHarvestTargetDailyView(APIView):
+    permission_classes = [RoleAdminOnly]
+
+    def put(self, request):
+        s = UpdateHarvestTargetRequestSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        target = services.upsert_target("daily", s.validated_data["target_count"])
+        payload = _build_target_payload(target, s.validated_data.get("effective_from"))
+        return Response(success_response(request, payload), status=status.HTTP_200_OK)
+
+
+class UpdateHarvestTargetWeeklyView(APIView):
+    permission_classes = [RoleAdminOnly]
+
+    def put(self, request):
+        s = UpdateHarvestTargetRequestSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        target = services.upsert_target("weekly", s.validated_data["target_count"])
+        payload = _build_target_payload(target, s.validated_data.get("effective_from"))
+        return Response(success_response(request, payload), status=status.HTTP_200_OK)
+
+
+class UpdateHarvestTargetMonthlyView(APIView):
+    permission_classes = [RoleAdminOnly]
+
+    def put(self, request):
+        s = UpdateHarvestTargetRequestSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        target = services.upsert_target("monthly", s.validated_data["target_count"])
+        payload = _build_target_payload(target, s.validated_data.get("effective_from"))
+        return Response(success_response(request, payload), status=status.HTTP_200_OK)
