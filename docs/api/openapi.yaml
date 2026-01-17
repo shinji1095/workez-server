@@ -15,12 +15,12 @@ servers:
   variables:
     host:
       default: 192.168.10.110
-- url: https://bdaf4de6e6d3.ngrok-free.app
+- url: https://{subdomain}.ngrok-free.app
   description: ngrok（開発）
   variables:
     subdomain:
-      default: 2744f5b04e3f
-      description: "ngrokのサブドメイン（例: 2744f5b04e3f）"
+      default: example
+      description: "ngrokのサブドメイン（例: bb248eea47fd）"
 tags:
 - name: admin
   description: 管理ユーザーに関する機能群
@@ -410,6 +410,94 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/records/export/csv:
+    get:
+      tags:
+      - harvest
+      summary: 収穫レコードCSV出力
+      description: 'ページ: 収穫レポート
+
+        権限（CSV記載）: 一般≧
+
+        説明: 期間と任意のロット/サイズ/ランクで絞り込んだレコードをCSVでダウンロード
+
+        '
+      operationId: exportHarvestRecordsCsv
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS -L -o harvest_records.csv \
+            "${BASE_URL}/harvest/records/export/csv?start_date=${START_DATE}&end_date=${END_DATE}&lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"
+      parameters:
+      - $ref: '#/components/parameters/startDate'
+      - $ref: '#/components/parameters/endDate'
+      - $ref: '#/components/parameters/harvestLot'
+      - $ref: '#/components/parameters/harvestSize'
+      - $ref: '#/components/parameters/harvestRank'
+      responses:
+        '200':
+          description: 成功（CSVダウンロード）
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /harvest/records/report/pdf:
+    get:
+      tags:
+      - harvest
+      summary: 収穫レポートPDF出力
+      description: 'ページ: 収穫レポート
+
+        権限（CSV記載）: 一般≧
+
+        説明: 期間と任意のロット/サイズ/ランクで集計した表・グラフ付きレポートをPDFでダウンロード
+
+        '
+      operationId: exportHarvestReportPdf
+      x-codeSamples:
+      - lang: curl
+        label: curl
+        source: |
+          curl -sS -L -o harvest_report.pdf \
+            "${BASE_URL}/harvest/records/report/pdf?start_date=${START_DATE}&end_date=${END_DATE}&lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}"
+      parameters:
+      - $ref: '#/components/parameters/startDate'
+      - $ref: '#/components/parameters/endDate'
+      - $ref: '#/components/parameters/harvestLot'
+      - $ref: '#/components/parameters/harvestSize'
+      - $ref: '#/components/parameters/harvestRank'
+      responses:
+        '200':
+          description: 成功（PDFダウンロード）
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /harvest/amount/daily:
@@ -1696,6 +1784,67 @@ components:
         type: string
         format: date
       example: '2025-12-21'
+    startDate:
+      name: start_date
+      in: query
+      required: true
+      description: 期間開始日（YYYY-MM-DD）
+      schema:
+        type: string
+        format: date
+      example: '2025-01-01'
+    endDate:
+      name: end_date
+      in: query
+      required: true
+      description: 期間終了日（YYYY-MM-DD）
+      schema:
+        type: string
+        format: date
+      example: '2025-01-31'
+    harvestLot:
+      name: lot
+      in: query
+      required: false
+      description: ロット（`harvest_records.lot_name` 相当）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+      example: '1e'
+    harvestSize:
+      name: size
+      in: query
+      required: false
+      description: サイズID（`harvest_records.size_id` 相当）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+        enum:
+        - L
+        - M
+        - S
+        - SS
+        - '3S'
+        - 小
+        - 黒
+      example: S
+    harvestRank:
+      name: rank
+      in: query
+      required: false
+      description: ランクID（`harvest_records.rank_id` 相当）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+        enum:
+        - A
+        - B
+        - C
+        - 廃棄
+      example: A
     month_ym:
       name: month
       in: query

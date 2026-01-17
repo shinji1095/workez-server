@@ -3,8 +3,8 @@
 ## 1. スコープ
 - 本資料は Django アプリが管理する業務テーブルを対象とする（`auth_*`, `django_*` などの Django 標準テーブルは省略）。
 - 本資料は以下の変更を反映する：
-  - `defects_records` から `device_id` を削除
-  - `harvest_records` から `device_id` / `category_id` / `category_name` を削除し、`size_id` / `rank_id` / `lot_name` を追加
+  - `harvest_records` から `category_id` / `category_name` を削除し、`size_id` / `rank_id` / `lot_name` を追加
+  - `harvest_records.count` を小数（0.1刻み）に対応するため `decimal(10,1)` 相当に変更
   - `harvest_aggregate_overrides` の `category_id` / `category_name` を `size_id` / `size_name` に変更
   - `price_records` から `category_id` / `category_name` を削除し、`size_id` / `rank_id` を追加
   - `sizes` / `ranks` テーブルを追加（初期レコードあり）
@@ -19,8 +19,6 @@
 ## 3. リレーション（物理FKのみ）
 ```mermaid
 erDiagram
-  devices ||--|| device_battery_status : "1:1"
-  devices ||--o{ device_alarms : "1:N"
   sizes ||--o{ harvest_records : "1:N"
   sizes ||--o{ harvest_aggregate_overrides : "1:N"
   ranks ||--o{ harvest_records : "1:N"
@@ -41,37 +39,6 @@ erDiagram
 | `created_at` | datetime | NO | 自動設定（作成時） |
 | `updated_at` | datetime | NO | 自動更新 |
 
-### `devices`（`apps.devices.Device`）
-| カラム | 型（概念） | NULL | 制約/補足 |
-|---|---|---:|---|
-| `id` | varchar(64) | NO | PK |
-| `name` | varchar(255) | NO |  |
-| `status` | varchar(32) | NO | default=`active`（`active`/`inactive`/`maintenance`） |
-| `created_at` | datetime | NO | 自動設定（作成時） |
-| `updated_at` | datetime | NO | 自動更新 |
-
-### `device_battery_status`（`apps.devices.BatteryStatus`）
-| カラム | 型（概念） | NULL | 制約/補足 |
-|---|---|---:|---|
-| `id` | bigint | NO | PK（自動採番） |
-| `device_id` | varchar(64) | NO | UNIQUE、FK → `devices.id`（`ON DELETE CASCADE`） |
-| `percent` | int | NO |  |
-| `voltage_mv` | int | YES |  |
-| `is_charging` | boolean | NO | default=`false` |
-| `updated_at` | datetime | NO | 自動更新 |
-
-### `device_alarms`（`apps.devices.Alarm`）
-| カラム | 型（概念） | NULL | 制約/補足 |
-|---|---|---:|---|
-| `alarm_id` | uuid | NO | PK |
-| `device_id` | varchar(64) | NO | FK → `devices.id`（`ON DELETE CASCADE`） |
-| `type` | varchar(32) | NO | `battery_low`/`sensor_failure`/`network_error` |
-| `message` | text | NO |  |
-| `status` | varchar(32) | NO | default=`open`（`open`/`acknowledged`/`closed`） |
-| `severity` | varchar(16) | YES | `info`/`warning`/`critical` |
-| `occurred_at` | datetime | NO |  |
-| `created_at` | datetime | NO | 自動設定（作成時） |
-
 ### `harvest_records`（`apps.harvest.HarvestRecord`）
 | カラム | 型（概念） | NULL | 制約/補足 |
 |---|---|---:|---|
@@ -80,7 +47,7 @@ erDiagram
 | `lot_name` | varchar(64) | NO |  |
 | `size_id` | varchar(64) | NO | FK → `sizes.size_id` |
 | `rank_id` | varchar(64) | NO | FK → `ranks.rank_id` |
-| `count` | int | NO | 収穫量（g） |
+| `count` | decimal(10,1) | NO | 収穫量（0.1刻み） |
 | `occurred_at` | datetime | NO |  |
 | `created_at` | datetime | NO | 自動設定（作成時） |
 

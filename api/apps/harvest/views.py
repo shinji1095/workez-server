@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import csv
+from collections import defaultdict
 from datetime import datetime, time
 from datetime import date
+from decimal import Decimal
+from io import BytesIO, StringIO
+from typing import Any
 from uuid import UUID
 
+from django.http import HttpResponse
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError  # type: ignore
+from rest_framework.exceptions import NotFound, ValidationError  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
 from rest_framework import status  # type: ignore
@@ -51,6 +57,199 @@ def _parse_path_date(raw: str) -> date:
     except ValueError as e:
         raise ValidationError({"date": "Invalid ISO date (YYYY-MM-DD)."}) from e
 
+
+def _get_optional_query_param(request, name: str) -> str | None:
+    value = request.query_params.get(name)
+    if value is None:
+        return None
+    value = str(value).strip()
+    return value or None
+
+
+def _require_query_date(request, name: str) -> date:
+    raw = request.query_params.get(name)
+    if not raw:
+        raise ValidationError({name: "required"})
+    try:
+        return date.fromisoformat(str(raw))
+    except ValueError as e:
+        raise ValidationError({name: "Invalid ISO date (YYYY-MM-DD)."}) from e
+
+
+def _format_count(value: Decimal) -> str:
+    return str(Decimal(value).quantize(Decimal("0.1")))
+
+
+def _require_size(size_id: str) -> None:
+    if not Size.objects.filter(size_id=size_id).exists():
+        raise NotFound(detail={"size_id": "size not found"})
+
+
+def _require_rank(rank_id: str) -> None:
+    if not Rank.objects.filter(rank_id=rank_id).exists():
+        raise NotFound(detail={"rank_id": "rank not found"})
+
+
+def _filter_harvest_records(
+    start_date: date,
+    end_date: date,
+    *,
+    lot_name: str | None,
+    size_id: str | None,
+    rank_id: str | None,
+):
+    qs = HarvestRecord.objects.filter(
+        occurred_at__date__gte=start_date,
+        occurred_at__date__lte=end_date,
+    ).select_related("size", "rank")
+    if lot_name:
+        qs = qs.filter(lot_name=lot_name)
+    if size_id:
+        qs = qs.filter(size_id=size_id)
+    if rank_id:
+        qs = qs.filter(rank_id=rank_id)
+    return qs
+
+
+def _summarize_records_daily(qs) -> tuple[list[dict], int, Decimal]:
+    bucket: dict[str, Decimal] = defaultdict(Decimal)
+    record_count = 0
+    total_count = Decimal("0.0")
+    for rec in qs.iterator():
+        record_count += 1
+        total_count += Decimal(rec.count)
+        period = timezone.localtime(rec.occurred_at).date().isoformat()
+        bucket[period] += Decimal(rec.count)
+    items = [{"period": key, "total_count": bucket[key]} for key in sorted(bucket.keys())]
+    return items, record_count, total_count
+
+
+def _draw_bar_chart(
+    c: Any,
+    items: list[dict],
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+) -> None:
+    c.setLineWidth(1)
+    c.rect(x, y, width, height)
+    if not items:
+        c.setFont("Helvetica", 10)
+        c.drawString(x + 6, y + height - 14, "No data")
+        return
+
+    values = [float(item["total_count"]) for item in items]
+    max_val = max(values) if values else 0.0
+    if max_val <= 0:
+        max_val = 1.0
+
+    bar_count = len(values)
+    gap = min(6.0, width / (bar_count * 4)) if bar_count else 0.0
+    bar_width = (width - gap * (bar_count + 1)) / bar_count
+
+    c.setFillColorRGB(0.2, 0.4, 0.7)
+    for idx, value in enumerate(values):
+        bar_height = (value / max_val) * (height - 20)
+        bar_x = x + gap + idx * (bar_width + gap)
+        c.rect(bar_x, y + 10, bar_width, bar_height, fill=1, stroke=0)
+
+    c.setFillColorRGB(0, 0, 0)
+    c.setFont("Helvetica", 8)
+    step = max(1, int(bar_count / 10)) if bar_count else 1
+    for idx, item in enumerate(items):
+        if idx % step != 0:
+            continue
+        label = item["period"]
+        label_x = x + gap + idx * (bar_width + gap)
+        c.drawString(label_x, y + 2, label)
+
+    c.setFont("Helvetica", 8)
+    c.drawRightString(x + width - 4, y + height - 12, _format_count(Decimal(str(max_val))))
+
+
+def _render_harvest_pdf(
+    items: list[dict],
+    *,
+    start_date: date,
+    end_date: date,
+    lot_name: str | None,
+    size_id: str | None,
+    rank_id: str | None,
+    record_count: int,
+    total_count: Decimal,
+) -> bytes:
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfgen import canvas
+    except ImportError as exc:
+        raise RuntimeError("reportlab is required for PDF export") from exc
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    margin = 40
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(margin, height - margin, "Harvest Report")
+
+    c.setFont("Helvetica", 10)
+    c.drawString(margin, height - margin - 20, f"Period: {start_date} - {end_date}")
+    c.drawString(
+        margin,
+        height - margin - 35,
+        f"Lot: {lot_name or '-'}  Size: {size_id or '-'}  Rank: {rank_id or '-'}",
+    )
+    c.drawString(
+        margin,
+        height - margin - 50,
+        f"Records: {record_count}  Total Count: {_format_count(total_count)}",
+    )
+
+    chart_height = 250
+    chart_top = height - margin - 80
+    _draw_bar_chart(
+        c,
+        items,
+        margin,
+        chart_top - chart_height,
+        width - margin * 2,
+        chart_height,
+    )
+
+    c.showPage()
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(margin, height - margin, "Summary Table (Daily)")
+
+    y = height - margin - 20
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(margin, y, "Period")
+    c.drawString(margin + 140, y, "Total Count")
+    y -= 14
+
+    c.setFont("Helvetica", 10)
+    if not items:
+        c.drawString(margin, y, "No records.")
+    else:
+        for item in items:
+            if y < margin:
+                c.showPage()
+                c.setFont("Helvetica-Bold", 12)
+                c.drawString(margin, height - margin, "Summary Table (Daily)")
+                y = height - margin - 20
+                c.setFont("Helvetica-Bold", 10)
+                c.drawString(margin, y, "Period")
+                c.drawString(margin + 140, y, "Total Count")
+                y -= 14
+                c.setFont("Helvetica", 10)
+            c.drawString(margin, y, item["period"])
+            c.drawRightString(margin + 200, y, _format_count(item["total_count"]))
+            y -= 12
+
+    c.save()
+    buffer.seek(0)
+    return buffer.getvalue()
 
 def _build_target_payload(target, effective_from: date | None) -> dict:
     return {
@@ -654,3 +853,109 @@ class UpdateHarvestTargetMonthlyView(APIView):
         target = services.upsert_target("monthly", s.validated_data["target_count"])
         payload = _build_target_payload(target, s.validated_data.get("effective_from"))
         return Response(success_response(request, payload), status=status.HTTP_200_OK)
+
+
+class ExportHarvestRecordsCsvView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request):
+        start_date = _require_query_date(request, "start_date")
+        end_date = _require_query_date(request, "end_date")
+        if start_date > end_date:
+            raise ValidationError({"end_date": "must be >= start_date"})
+
+        lot_name = _get_optional_query_param(request, "lot")
+        size_id = _get_optional_query_param(request, "size")
+        rank_id = _get_optional_query_param(request, "rank")
+
+        if size_id:
+            _require_size(size_id)
+        if rank_id:
+            _require_rank(rank_id)
+
+        qs = _filter_harvest_records(
+            start_date,
+            end_date,
+            lot_name=lot_name,
+            size_id=size_id,
+            rank_id=rank_id,
+        ).order_by("occurred_at", "id")
+
+        output = StringIO(newline="")
+        writer = csv.writer(output)
+        writer.writerow(
+            [
+                "id",
+                "event_id",
+                "lot_name",
+                "size_id",
+                "rank_id",
+                "count",
+                "occurred_at",
+                "created_at",
+            ]
+        )
+
+        for rec in qs.iterator():
+            writer.writerow(
+                [
+                    str(rec.id),
+                    str(rec.event_id) if rec.event_id else "",
+                    rec.lot_name,
+                    rec.size_id,
+                    rec.rank_id,
+                    _format_count(Decimal(rec.count)),
+                    timezone.localtime(rec.occurred_at).isoformat(),
+                    timezone.localtime(rec.created_at).isoformat(),
+                ]
+            )
+
+        filename = f"harvest_records_{start_date.isoformat()}_{end_date.isoformat()}.csv"
+        content = output.getvalue().encode("utf-8-sig")
+        response = HttpResponse(content, content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class ExportHarvestReportPdfView(APIView):
+    permission_classes = [RoleAtLeastUser]
+
+    def get(self, request):
+        start_date = _require_query_date(request, "start_date")
+        end_date = _require_query_date(request, "end_date")
+        if start_date > end_date:
+            raise ValidationError({"end_date": "must be >= start_date"})
+
+        lot_name = _get_optional_query_param(request, "lot")
+        size_id = _get_optional_query_param(request, "size")
+        rank_id = _get_optional_query_param(request, "rank")
+
+        if size_id:
+            _require_size(size_id)
+        if rank_id:
+            _require_rank(rank_id)
+
+        qs = _filter_harvest_records(
+            start_date,
+            end_date,
+            lot_name=lot_name,
+            size_id=size_id,
+            rank_id=rank_id,
+        ).order_by("occurred_at", "id")
+
+        items, record_count, total_count = _summarize_records_daily(qs)
+        pdf_bytes = _render_harvest_pdf(
+            items,
+            start_date=start_date,
+            end_date=end_date,
+            lot_name=lot_name,
+            size_id=size_id,
+            rank_id=rank_id,
+            record_count=record_count,
+            total_count=total_count,
+        )
+
+        filename = f"harvest_report_{start_date.isoformat()}_{end_date.isoformat()}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response

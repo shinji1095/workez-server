@@ -7,3 +7,6 @@
 .venv
 
 node_modules/
+
+harvest_records.csv
+harvest_report.pdf

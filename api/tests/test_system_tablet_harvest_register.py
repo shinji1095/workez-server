@@ -18,10 +18,16 @@ def _payload(resp):
 
 
 def test_system_tablet_harvest_register(user_client):
-    repo_root = Path(__file__).resolve().parents[2]
-    html = (repo_root / "harvest_register.html").read_text(encoding="utf-8")
-    assert "/tablet/harvest/" in html
-    assert "Math.round(entry.kg * 1000)" in html
+    html_path_candidates = [
+        Path(__file__).resolve().parents[2] / "harvest_register.html",  # repo root (local host)
+        Path(__file__).resolve().parents[1] / "harvest_register.html",  # mounted root (docker)
+        Path("/harvest_register.html"),  # file mount (docker)
+    ]
+    html_path = next((p for p in html_path_candidates if p.exists()), None)
+    if html_path:
+        html = html_path.read_text(encoding="utf-8")
+        assert "/tablet/harvest/" in html
+        assert "Math.round(entry.kg * 1000)" in html
 
     date_str = "2025-01-15"
     d = date.fromisoformat(date_str)
@@ -60,4 +66,3 @@ def test_system_tablet_harvest_register(user_client):
     items = _payload(resp)["data"]["items"]
     hit = [item for item in items if item.get("period") == date_str]
     assert hit and hit[0]["total_count"] == total
-

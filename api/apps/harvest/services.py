@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from decimal import Decimal
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -15,6 +16,16 @@ from .models import HarvestAggregateOverride, HarvestRecord, HarvestTarget, Rank
 PERIOD_DAILY = "daily"
 PERIOD_WEEKLY = "weekly"
 PERIOD_MONTHLY = "monthly"
+
+
+def _to_decimal(value: Any) -> Decimal:
+    if isinstance(value, Decimal):
+        return value
+    if isinstance(value, int):
+        return Decimal(value)
+    if isinstance(value, float):
+        return Decimal(str(value))
+    return Decimal(str(value))
 
 
 def _require_defined_size(size_id: str) -> Size:
@@ -168,9 +179,9 @@ def _bucket_records(
                 "period": period,
                 "size_id": rec.size_id,
                 "size_name": size.size_name if size else None,
-                "total_count": 0,
+                "total_count": Decimal("0.0"),
             }
-        bucket[key]["total_count"] += int(rec.count)
+        bucket[key]["total_count"] += _to_decimal(rec.count)
 
     # Apply overrides (override wins)
     ov_qs = HarvestAggregateOverride.objects.filter(period_type=period_type).only("period", "size", "total_count")
@@ -183,7 +194,7 @@ def _bucket_records(
             "period": ov.period,
             "size_id": ov.size_id,
             "size_name": size.size_name if size else None,
-            "total_count": int(ov.total_count),
+            "total_count": _to_decimal(ov.total_count),
         }
 
     return bucket
@@ -191,10 +202,10 @@ def _bucket_records(
 
 def list_aggregate_total(period_type: str) -> List[Dict[str, Any]]:
     qs = HarvestRecord.objects.all().only("occurred_at", "count")
-    bucket: Dict[str, int] = defaultdict(int)
+    bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
         period = _period_of(rec.occurred_at, period_type)
-        bucket[period] += int(rec.count)
+        bucket[period] += _to_decimal(rec.count)
 
     items = [{"period": period, "total_count": total} for period, total in bucket.items()]
     items.sort(key=lambda x: x["period"], reverse=True)
@@ -211,10 +222,10 @@ def list_aggregate_by_lot(period_type: str, lot_name: str) -> List[Dict[str, Any
     if not lot_name:
         raise ValidationError({"lot_name": "required"})
     qs = HarvestRecord.objects.filter(lot_name=lot_name).only("occurred_at", "count")
-    bucket: Dict[str, int] = defaultdict(int)
+    bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
         period = _period_of(rec.occurred_at, period_type)
-        bucket[period] += int(rec.count)
+        bucket[period] += _to_decimal(rec.count)
 
     items = [
         {
@@ -231,10 +242,10 @@ def list_aggregate_by_lot(period_type: str, lot_name: str) -> List[Dict[str, Any
 def list_aggregate_by_rank(period_type: str, rank_id: str) -> List[Dict[str, Any]]:
     rank = _require_defined_rank(rank_id)
     qs = HarvestRecord.objects.filter(rank_id=rank_id).only("occurred_at", "rank", "count")
-    bucket: Dict[str, int] = defaultdict(int)
+    bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
         period = _period_of(rec.occurred_at, period_type)
-        bucket[period] += int(rec.count)
+        bucket[period] += _to_decimal(rec.count)
 
     items = [
         {
@@ -253,10 +264,10 @@ def list_aggregate_by_size_rank(period_type: str, size_id: str, rank_id: str) ->
     size = _require_defined_size(size_id)
     rank = _require_defined_rank(rank_id)
     qs = HarvestRecord.objects.filter(size_id=size_id, rank_id=rank_id).only("occurred_at", "size", "rank", "count")
-    bucket: Dict[str, int] = defaultdict(int)
+    bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
         period = _period_of(rec.occurred_at, period_type)
-        bucket[period] += int(rec.count)
+        bucket[period] += _to_decimal(rec.count)
 
     items = [
         {

@@ -19,6 +19,7 @@ class CreateHarvestAmountAddRequestSerializer(serializers.Serializer):
 class HarvestRecordSerializer(serializers.ModelSerializer):
     size_id = serializers.CharField(source="size.size_id")
     rank_id = serializers.CharField(source="rank.rank_id")
+    count = serializers.DecimalField(max_digits=10, decimal_places=1, coerce_to_string=False)
 
     class Meta:
         model = HarvestRecord

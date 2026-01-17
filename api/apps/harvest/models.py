@@ -24,7 +24,7 @@ class HarvestRecord(models.Model):
     lot_name = models.CharField(max_length=64)
     size = models.ForeignKey(Size, on_delete=models.PROTECT)
     rank = models.ForeignKey(Rank, on_delete=models.PROTECT)
-    count = models.IntegerField()
+    count = models.DecimalField(max_digits=10, decimal_places=1)
     occurred_at = models.DateTimeField()
 
     created_at = models.DateTimeField(auto_now_add=True)

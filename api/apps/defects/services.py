@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from decimal import Decimal
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -20,6 +21,16 @@ def _period_weekly(dt: datetime) -> str:
 
 def _period_monthly(dt: datetime) -> str:
     return f"{dt.year:04d}-{dt.month:02d}"
+
+
+def _to_decimal(value: Any) -> Decimal:
+    if isinstance(value, Decimal):
+        return value
+    if isinstance(value, int):
+        return Decimal(value)
+    if isinstance(value, float):
+        return Decimal(str(value))
+    return Decimal(str(value))
 
 
 @transaction.atomic
@@ -63,16 +74,16 @@ def list_ratio(period_type: str) -> List[Dict[str, Any]]:
     defects = list_amount(period_type)
     d_map = {i["period"]: i["total_defects"] for i in defects}
 
-    h_bucket = defaultdict(int)
+    h_bucket = defaultdict(Decimal)
     for r in HarvestRecord.objects.all().iterator():
         p = _period_weekly(r.occurred_at) if period_type == "weekly" else _period_monthly(r.occurred_at)
-        h_bucket[p] += int(r.count)
+        h_bucket[p] += _to_decimal(r.count)
 
     items = []
     for p in sorted(set(d_map.keys()) | set(h_bucket.keys()), reverse=True):
         total_defects = int(d_map.get(p, 0))
-        total_harvest = int(h_bucket.get(p, 0))
-        ratio = (total_defects / total_harvest * 100.0) if total_harvest > 0 else 0.0
+        total_harvest = h_bucket.get(p, Decimal("0.0"))
+        ratio = (total_defects / float(total_harvest) * 100.0) if total_harvest > 0 else 0.0
         items.append(
             {
                 "period": p,

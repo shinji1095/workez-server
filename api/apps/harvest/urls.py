@@ -2,6 +2,8 @@ from django.urls import path
 
 from .views import (
     CreateHarvestAmountAddView,
+    ExportHarvestRecordsCsvView,
+    ExportHarvestReportPdfView,
     ListHarvestDailyView,
     ListHarvestMonthlyView,
     ListHarvestWeeklyView,
@@ -25,6 +27,9 @@ from .views import (
 
 urlpatterns = [
     path("harvest/amount/add", CreateHarvestAmountAddView.as_view()),
+
+    path("harvest/records/export/csv", ExportHarvestRecordsCsvView.as_view()),
+    path("harvest/records/report/pdf", ExportHarvestReportPdfView.as_view()),
 
     path("harvest/amount/daily", ListHarvestDailyView.as_view()),
     path("harvest/amount/daily/size/<str:size_id>", RetrieveHarvestDailySizeView.as_view()),

@@ -5,21 +5,40 @@
 ## 事前準備
 
 - `BASE_URL` は起動方法に合わせて設定します（末尾スラッシュなし）。
-  - Django直: `http://localhost:8000`
-  - reverse-proxy（nginx）経由: `http://localhost/api`
+  - Django直（`api` コンテナの 8000 を公開）: `http://localhost:8000`
+  - reverse-proxy（nginx）経由（`/api` プレフィックスあり）: `http://localhost/api`
+  - ngrok（8000 を公開）: `https://<subdomain>.ngrok-free.app`
+  - ngrok（80 を公開 + reverse-proxy 経由）: `https://<subdomain>.ngrok-free.app/api`
+  - `BASE_URL="http://localhost:8000/api"` のように `/api` を付けたまま Django 直（8000）を叩くと 404 になり、CSV/PDFとしてエラーレスポンス（JSON等）を保存してしまうので注意してください。
 - 認証は原則 JWT（Bearer）です。必要なロールのトークンを用意してください。
   - `ACCESS_TOKEN`: 一般（user）向け
   - `ADMIN_ACCESS_TOKEN`: 管理者（admin）向け
+  - `DEVICE_ACCESS_TOKEN`: デバイス（device）向け
+- 収穫系のパス変数は環境変数で指定します。
+  - `LOT_NAME` / `SIZE_ID` / `RANK_ID` / `HARVEST_DATE`
+  - `START_DATE` / `END_DATE`
 - `POST /auth/token` は API キー（`X-API-KEY`）で JWT を発行します。
   - `USER_API_KEY` / `ADMIN_API_KEY` / `DEVICE_API_KEY` は `.env.local` 等の値を使います。
 
-例（ローカル開発用: `tools/issue_jwt.py` でJWTを作成）:
+例（docker で JWT を作成）:
 
 ```sh
-ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzAwMSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY4NTM1MjI4LCJleHAiOjE3Njg1Mzg4Mjh9.MrU87F3QNEnHj37O3_-PHwpja5pGziAiIaUQrLqBAtE
-ADMIN_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbl8wMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjgxODA3MjUsImV4cCI6MTc2ODE4NDMyNX0.x1fEQLgbdU4xLkJ_qJ7x0n_YRk8Id1S2WALpjFpGLxE
-BASE_URL="https://bb248eea47fd.ngrok-free.app/"
+# 起動方法に合わせてどちらかを使う（末尾スラッシュなし）
+BASE_URL="https://bb248eea47fd.ngrok-free.app"
+# BASE_URL="http://localhost/api"
+
+ACCESS_TOKEN="$(docker compose exec -T api python tools/issue_jwt.py --role user --sub user_001)"
+ADMIN_ACCESS_TOKEN="$(docker compose exec -T api python tools/issue_jwt.py --role admin --sub admin_001)"
+DEVICE_ACCESS_TOKEN="$(docker compose exec -T api python tools/issue_jwt.py --role device --sub device_001)"
+LOT_NAME="1e"
+SIZE_ID="S"
+RANK_ID="A"
+HARVEST_DATE="2025-12-21"
+START_DATE="2025-01-01"
+END_DATE="2025-01-31"
 ```
+
+`docker compose` を `-f ...` や `--env-file ...` 付きで起動している場合、`exec` も同じオプションを付けてください。
 
 ## エンドポイント別 curl 例
 
@@ -110,6 +129,22 @@ curl -sS -X POST "${BASE_URL}/harvest/amount/add" \
   -H "Content-Type: application/json" \
   -d '{"event_id":"550e8400-e29b-41d4-a716-446655440000","lot_name":"1e","size_id":"S","rank_id":"A","count":12,"occurred_at":"2025-12-21T12:34:56+09:00"}'
 ```
+### GET /harvest/records/export/csv
+- 収穫レコードCSV出力
+
+```sh
+curl -sS -f -L -o harvest_records.csv \
+  "${BASE_URL}/harvest/records/export/csv?start_date=${START_DATE}&end_date=${END_DATE}&lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+### GET /harvest/records/report/pdf
+- 収穫レポートPDF出力
+
+```sh
+curl -sS -f -L -o harvest_report.pdf \
+  "${BASE_URL}/harvest/records/report/pdf?start_date=${START_DATE}&end_date=${END_DATE}&lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
+```
 ### GET /harvest/amount/daily
 - 日間収穫量
 
@@ -121,14 +156,14 @@ curl -sS "${BASE_URL}/harvest/amount/daily?page=1&page_size=10" \
 - 仕分けサイズごとの 日間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/daily/size/S?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/daily/size/${SIZE_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### PATCH /harvest/amount/daily/size/{sizeId}
 - 仕分けサイズごとの 日間収穫量の変更
 
 ```sh
-curl -sS -X PATCH "${BASE_URL}/harvest/amount/daily/size/S?date=2025-12-21" \
+curl -sS -X PATCH "${BASE_URL}/harvest/amount/daily/size/${SIZE_ID}?date=${HARVEST_DATE}" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
@@ -137,21 +172,21 @@ curl -sS -X PATCH "${BASE_URL}/harvest/amount/daily/size/S?date=2025-12-21" \
 - ロットごとの 日間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/daily/lot/1e?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/daily/lot/${LOT_NAME}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/daily/rank/{rankId}
 - 仕分けランクごとの 日間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/daily/rank/A?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/daily/rank/${RANK_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/daily/size/{sizeId}/rank/{rankId}
 - 仕分けランク・サイズごとの 日間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/daily/size/S/rank/A?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/daily/size/${SIZE_ID}/rank/${RANK_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 
@@ -166,14 +201,14 @@ curl -sS "${BASE_URL}/harvest/amount/monthly?page=1&page_size=10" \
 - 仕分けサイズごとの 月間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/monthly/size/S?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/monthly/size/${SIZE_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### PATCH /harvest/amount/monthly/size/{sizeId}
 - 仕分けサイズごとの 月間収穫量の変更
 
 ```sh
-curl -sS -X PATCH "${BASE_URL}/harvest/amount/monthly/size/S?month=2025-12" \
+curl -sS -X PATCH "${BASE_URL}/harvest/amount/monthly/size/${SIZE_ID}?month=2025-12" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
@@ -182,21 +217,21 @@ curl -sS -X PATCH "${BASE_URL}/harvest/amount/monthly/size/S?month=2025-12" \
 - ロットごとの 月間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/monthly/lot/1e?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/monthly/lot/${LOT_NAME}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/monthly/rank/{rankId}
 - 仕分けランクごとの 月間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/monthly/rank/A?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/monthly/rank/${RANK_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/monthly/size/{sizeId}/rank/{rankId}
 - 仕分けランク・サイズごとの 月間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/monthly/size/S/rank/A?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/monthly/size/${SIZE_ID}/rank/${RANK_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/weekly
@@ -210,14 +245,14 @@ curl -sS "${BASE_URL}/harvest/amount/weekly?page=1&page_size=10" \
 - 仕分けサイズごとの 週間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/weekly/size/S?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/weekly/size/${SIZE_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### PATCH /harvest/amount/weekly/size/{sizeId}
 - 仕分けサイズごとの 週間収穫量の変更
 
 ```sh
-curl -sS -X PATCH "${BASE_URL}/harvest/amount/weekly/size/S?date=2025-12-21" \
+curl -sS -X PATCH "${BASE_URL}/harvest/amount/weekly/size/${SIZE_ID}?date=${HARVEST_DATE}" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
@@ -226,7 +261,7 @@ curl -sS -X PATCH "${BASE_URL}/harvest/amount/weekly/size/S?date=2025-12-21" \
 - ロットごとの 週間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/weekly/lot/1e?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/weekly/lot/${LOT_NAME}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 
@@ -234,14 +269,14 @@ curl -sS "${BASE_URL}/harvest/amount/weekly/lot/1e?page=1&page_size=10" \
 - 仕分けランクごとの 週間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/weekly/rank/A?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/weekly/rank/${RANK_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /harvest/amount/weekly/size/{sizeId}/rank/{rankId}
 - 仕分けランク・サイズごとの 週間収穫量
 
 ```sh
-curl -sS "${BASE_URL}/harvest/amount/weekly/size/S/rank/A?page=1&page_size=10" \
+curl -sS "${BASE_URL}/harvest/amount/weekly/size/${SIZE_ID}/rank/${RANK_ID}?page=1&page_size=10" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### PUT /harvest/target/daily
@@ -275,7 +310,7 @@ curl -sS -X PUT "${BASE_URL}/harvest/target/weekly" \
 - 単価登録
 
 ```sh
-curl -sS -X POST "${BASE_URL}/prices/size/S/rank/A" \
+curl -sS -X POST "${BASE_URL}/prices/size/${SIZE_ID}/rank/${RANK_ID}" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"year":2025,"month":12,"unit_price_yen":120}'
@@ -284,7 +319,7 @@ curl -sS -X POST "${BASE_URL}/prices/size/S/rank/A" \
 - 単価変更
 
 ```sh
-curl -sS -X PUT "${BASE_URL}/prices/size/S/rank/A" \
+curl -sS -X PUT "${BASE_URL}/prices/size/${SIZE_ID}/rank/${RANK_ID}" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"year":2025,"month":12,"unit_price_yen":120}'
@@ -293,7 +328,7 @@ curl -sS -X PUT "${BASE_URL}/prices/size/S/rank/A" \
 - 単価削除
 
 ```sh
-curl -sS -X DELETE "${BASE_URL}/prices/size/S/rank/A?year=2025&month=12" \
+curl -sS -X DELETE "${BASE_URL}/prices/size/${SIZE_ID}/rank/${RANK_ID}?year=2025&month=12" \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}"
 ```
 
@@ -315,7 +350,7 @@ curl -sS "${BASE_URL}/prices/yearly?page=1&page_size=10" \
 - タブレット入力収穫数追加
 
 ```sh
-curl -sS -X POST "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
+curl -sS -X POST "${BASE_URL}/tablet/harvest/${HARVEST_DATE}?lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
@@ -324,14 +359,14 @@ curl -sS -X POST "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
 - タブレット入力収穫数取得
 
 ```sh
-curl -sS "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
+curl -sS "${BASE_URL}/tablet/harvest/${HARVEST_DATE}?lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### PUT /tablet/harvest/{date}
 - タブレット入力収穫数変更
 
 ```sh
-curl -sS -X PUT "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
+curl -sS -X PUT "${BASE_URL}/tablet/harvest/${HARVEST_DATE}?lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"count":123}'
@@ -340,7 +375,7 @@ curl -sS -X PUT "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
 - タブレット入力収穫数削除
 
 ```sh
-curl -sS -X DELETE "${BASE_URL}/tablet/harvest/2025-12-21?lot=1e&size=S&rank=A" \
+curl -sS -X DELETE "${BASE_URL}/tablet/harvest/${HARVEST_DATE}?lot=${LOT_NAME}&size=${SIZE_ID}&rank=${RANK_ID}" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 ### GET /users

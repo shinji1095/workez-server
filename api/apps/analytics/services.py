@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Dict, Any, List, Tuple
 from collections import defaultdict
+from decimal import Decimal
 from datetime import date, datetime, timedelta
 
 from apps.harvest.models import HarvestRecord
@@ -26,9 +27,19 @@ def _find_price(prices: List[PriceRecord], d: date) -> int | None:
             best = p
     return best.unit_price_yen if best else None
 
+
+def _to_decimal(value: Any) -> Decimal:
+    if isinstance(value, Decimal):
+        return value
+    if isinstance(value, int):
+        return Decimal(value)
+    if isinstance(value, float):
+        return Decimal(str(value))
+    return Decimal(str(value))
+
 def list_revenue_monthly() -> List[Dict[str, Any]]:
     price_table = _price_lookup_table()
-    bucket = defaultdict(int)
+    bucket = defaultdict(Decimal)
     for r in HarvestRecord.objects.all().iterator():
         prices = price_table.get((r.size_id, r.rank_id))
         if not prices:
@@ -37,14 +48,14 @@ def list_revenue_monthly() -> List[Dict[str, Any]]:
         if unit is None:
             continue
         p = _period_monthly(r.occurred_at)
-        bucket[p] += int(r.count) * int(unit)
+        bucket[p] += _to_decimal(r.count) * Decimal(unit)
     items = [{"period": p, "revenue_yen": v} for p, v in bucket.items()]
     items.sort(key=lambda x: x["period"], reverse=True)
     return items
 
 def list_revenue_yearly() -> List[Dict[str, Any]]:
     price_table = _price_lookup_table()
-    bucket = defaultdict(int)
+    bucket = defaultdict(Decimal)
     for r in HarvestRecord.objects.all().iterator():
         prices = price_table.get((r.size_id, r.rank_id))
         if not prices:
@@ -53,7 +64,7 @@ def list_revenue_yearly() -> List[Dict[str, Any]]:
         if unit is None:
             continue
         p = _period_yearly(r.occurred_at)
-        bucket[p] += int(r.count) * int(unit)
+        bucket[p] += _to_decimal(r.count) * Decimal(unit)
     items = [{"period": p, "revenue_yen": v} for p, v in bucket.items()]
     items.sort(key=lambda x: x["period"], reverse=True)
     return items
@@ -63,10 +74,10 @@ def list_harvest_monthly_forecast(months_ahead: int = 1) -> List[Dict[str, Any]]
 
     OpenAPIにはアルゴリズム要件が無いため、暫定のベースライン実装。
     """
-    bucket = defaultdict(int)
+    bucket = defaultdict(Decimal)
     for r in HarvestRecord.objects.all().iterator():
         p = _period_monthly(r.occurred_at)
-        bucket[p] += int(r.count)
+        bucket[p] += _to_decimal(r.count)
 
     # Determine last month with data
     if not bucket:
