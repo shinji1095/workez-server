@@ -29,7 +29,7 @@ BASE_URL="https://bb248eea47fd.ngrok-free.app"
 
 ACCESS_TOKEN="$(docker compose exec -T api python tools/issue_jwt.py --role user --sub user_001)"
 ADMIN_ACCESS_TOKEN="$(docker compose exec -T api python tools/issue_jwt.py --role admin --sub admin_001)"
-DEVICE_ACCESS_TOKEN="$(docker compose exec -T api python tools/issue_jwt.py --role device --sub device_001)"
+
 LOT_NAME="1e"
 SIZE_ID="S"
 RANK_ID="A"
@@ -88,7 +88,7 @@ curl -sS "${BASE_URL}/analytics/revenue/yearly?page=1&page_size=10" \
 curl -sS -X POST "${BASE_URL}/defects/amount/add" \
   -H "Authorization: Bearer ${DEVICE_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d '{"event_id":"550e8400-e29b-41d4-a716-446655440000","category_id":"S","count":12,"occurred_at":"2025-12-21T12:34:56+09:00"}'
+  -d '{"event_id":"550e8400-e29b-41d4-a716-446655440000","count":2.5}'
 ```
 ### GET /defects/amount/monthly
 - 月間不良品数

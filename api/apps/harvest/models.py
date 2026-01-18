@@ -1,5 +1,6 @@
 import uuid
 from django.db import models  # type: ignore
+from django.utils import timezone  # type: ignore
 
 class Size(models.Model):
     size_id = models.CharField(max_length=64, primary_key=True)
@@ -25,13 +26,11 @@ class HarvestRecord(models.Model):
     size = models.ForeignKey(Size, on_delete=models.PROTECT)
     rank = models.ForeignKey(Rank, on_delete=models.PROTECT)
     count = models.DecimalField(max_digits=10, decimal_places=1)
-    occurred_at = models.DateTimeField()
-
-    created_at = models.DateTimeField(auto_now_add=True)
+    harvested_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         db_table = "harvest_records"
-        ordering = ["-occurred_at"]
+        ordering = ["-harvested_at"]
 
 class HarvestAggregateOverride(models.Model):
     PERIOD_DAILY = "daily"

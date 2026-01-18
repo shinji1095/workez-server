@@ -9,15 +9,15 @@
   - 認証の要否・方式はTBD（必要な場合のトークン/キー準備はTBD）
 - 手順
   - POST /defects/amount/add にリクエストを送信する
-  - requestBodyはCSVに定義が無いため、まずは空JSON {} で試行し、実装仕様に合わせて調整（TBD）
+  - requestBodyは `event_id`（UUID）と `count`（0.1刻みの数値）を含める
 - 期待結果
   - ステータスコードが 201 であること
   - レスポンスがJSONであること
-  - レスポンス形式はTBD（フィールド断定不可）
+  - `data.id` / `data.event_id` / `data.count` / `data.created_at` が含まれる
 - 異常系（境界値、必須欠落、二重送信）
-  - 必須パラメータ欠落（パスパラメータ等）: 400 または 404（実装次第、TBD）
+  - 必須パラメータ欠落（event_id / count）: 400
   - 認証が必要な場合: 401/403（実装次第、TBD）
-  - 存在しないID指定（{userId}/{deviceId}/{categoryId}）: 404（実装次第、TBD）
+  - 重複event_id: 409
   - サーバーエラー時: 500 かつ ErrorResponse 形式
 
 ## TC-002

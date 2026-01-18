@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from django.db import IntegrityError, transaction  # type: ignore
-from django.utils import timezone  # type: ignore
 from rest_framework.exceptions import ValidationError  # type: ignore
 
 from apps.common.errors import ConflictError
@@ -38,18 +37,23 @@ def add_record(data: Dict[str, Any]) -> DefectsRecord:
     event_id = data.get("event_id")
     if not event_id:
         raise ValidationError({"event_id": ["This field is required."]})
-    if not data.get("category_id"):
-        raise ValidationError({"category_id": ["This field is required."]})
+    if data.get("count") is None:
+        raise ValidationError({"count": ["This field is required."]})
 
     if DefectsRecord.objects.filter(event_id=event_id).exists():
         raise ConflictError({"event_id": ["duplicate event_id"]})
 
+    count = _to_decimal(data["count"])
+    if count < Decimal("0.1"):
+        raise ValidationError({"count": ["must be >= 0.1"]})
+    quantized = count.quantize(Decimal("0.1"))
+    if count != quantized:
+        raise ValidationError({"count": ["must be in 0.1 increments"]})
+
     try:
         rec = DefectsRecord.objects.create(
             event_id=event_id,
-            category_id=data["category_id"],
-            count=data["count"],
-            occurred_at=data.get("occurred_at") or timezone.now(),
+            count=quantized,
         )
     except IntegrityError as e:
         if "event_id" in str(e).lower():
@@ -61,10 +65,10 @@ def add_record(data: Dict[str, Any]) -> DefectsRecord:
 
 def list_amount(period_type: str) -> List[Dict[str, Any]]:
     qs = DefectsRecord.objects.all()
-    bucket = defaultdict(int)
+    bucket = defaultdict(Decimal)
     for r in qs.iterator():
-        p = _period_weekly(r.occurred_at) if period_type == "weekly" else _period_monthly(r.occurred_at)
-        bucket[p] += int(r.count)
+        p = _period_weekly(r.created_at) if period_type == "weekly" else _period_monthly(r.created_at)
+        bucket[p] += _to_decimal(r.count)
     items = [{"period": p, "total_defects": c} for p, c in bucket.items()]
     items.sort(key=lambda x: x["period"], reverse=True)
     return items
@@ -76,14 +80,14 @@ def list_ratio(period_type: str) -> List[Dict[str, Any]]:
 
     h_bucket = defaultdict(Decimal)
     for r in HarvestRecord.objects.all().iterator():
-        p = _period_weekly(r.occurred_at) if period_type == "weekly" else _period_monthly(r.occurred_at)
+        p = _period_weekly(r.harvested_at) if period_type == "weekly" else _period_monthly(r.harvested_at)
         h_bucket[p] += _to_decimal(r.count)
 
     items = []
     for p in sorted(set(d_map.keys()) | set(h_bucket.keys()), reverse=True):
-        total_defects = int(d_map.get(p, 0))
+        total_defects = _to_decimal(d_map.get(p, Decimal("0.0")))
         total_harvest = h_bucket.get(p, Decimal("0.0"))
-        ratio = (total_defects / float(total_harvest) * 100.0) if total_harvest > 0 else 0.0
+        ratio = (float(total_defects) / float(total_harvest) * 100.0) if total_harvest > 0 else 0.0
         items.append(
             {
                 "period": p,

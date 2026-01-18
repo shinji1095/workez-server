@@ -10,7 +10,6 @@ def create_user(data: Dict[str, Any]) -> User:
         email=data["email"],
         name=data["name"],
         role=data.get("role", User.ROLE_USER),
-        is_active=data.get("is_active", True),
     )
     return user
 
@@ -24,10 +23,10 @@ def list_users(page: int, page_size: int) -> Tuple[list[User], int]:
 @transaction.atomic
 def partial_update_user(user_id: str, data: Dict[str, Any]) -> User:
     user = get_object_or_404(User, pk=user_id)
-    for k in ["email", "name", "is_active"]:
+    for k in ["email", "name"]:
         if k in data:
             setattr(user, k, data[k])
-    user.save(update_fields=["email", "name", "is_active", "updated_at"])
+    user.save(update_fields=["email", "name", "updated_at"])
     return user
 
 @transaction.atomic

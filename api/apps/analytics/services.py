@@ -13,19 +13,14 @@ def _period_monthly(dt: datetime) -> str:
 def _period_yearly(dt: datetime) -> str:
     return f"{dt.year:04d}"
 
-def _price_lookup_table() -> Dict[Tuple[str, str], List[PriceRecord]]:
-    table: Dict[Tuple[str, str], List[PriceRecord]] = defaultdict(list)
-    for p in PriceRecord.objects.all().order_by("size_id", "rank_id", "effective_from"):
-        table[(p.size_id, p.rank_id)].append(p)
+def _price_lookup_table() -> Dict[Tuple[str, str], Dict[Tuple[int, int], int]]:
+    table: Dict[Tuple[str, str], Dict[Tuple[int, int], int]] = defaultdict(dict)
+    for p in PriceRecord.objects.all().only("size_id", "rank_id", "year", "month", "unit_price_yen").iterator():
+        table[(p.size_id, p.rank_id)][(p.year, p.month)] = int(p.unit_price_yen)
     return table
 
-def _find_price(prices: List[PriceRecord], d: date) -> int | None:
-    # choose the latest effective_from <= d and effective_to >= d if set
-    best = None
-    for p in prices:
-        if p.effective_from <= d and (p.effective_to is None or p.effective_to >= d):
-            best = p
-    return best.unit_price_yen if best else None
+def _find_price(prices: Dict[Tuple[int, int], int], d: date) -> int | None:
+    return prices.get((d.year, d.month))
 
 
 def _to_decimal(value: Any) -> Decimal:
@@ -44,10 +39,10 @@ def list_revenue_monthly() -> List[Dict[str, Any]]:
         prices = price_table.get((r.size_id, r.rank_id))
         if not prices:
             continue
-        unit = _find_price(prices, r.occurred_at.date())
+        unit = _find_price(prices, r.harvested_at.date())
         if unit is None:
             continue
-        p = _period_monthly(r.occurred_at)
+        p = _period_monthly(r.harvested_at)
         bucket[p] += _to_decimal(r.count) * Decimal(unit)
     items = [{"period": p, "revenue_yen": v} for p, v in bucket.items()]
     items.sort(key=lambda x: x["period"], reverse=True)
@@ -60,10 +55,10 @@ def list_revenue_yearly() -> List[Dict[str, Any]]:
         prices = price_table.get((r.size_id, r.rank_id))
         if not prices:
             continue
-        unit = _find_price(prices, r.occurred_at.date())
+        unit = _find_price(prices, r.harvested_at.date())
         if unit is None:
             continue
-        p = _period_yearly(r.occurred_at)
+        p = _period_yearly(r.harvested_at)
         bucket[p] += _to_decimal(r.count) * Decimal(unit)
     items = [{"period": p, "revenue_yen": v} for p, v in bucket.items()]
     items.sort(key=lambda x: x["period"], reverse=True)
@@ -76,7 +71,7 @@ def list_harvest_monthly_forecast(months_ahead: int = 1) -> List[Dict[str, Any]]
     """
     bucket = defaultdict(Decimal)
     for r in HarvestRecord.objects.all().iterator():
-        p = _period_monthly(r.occurred_at)
+        p = _period_monthly(r.harvested_at)
         bucket[p] += _to_decimal(r.count)
 
     # Determine last month with data

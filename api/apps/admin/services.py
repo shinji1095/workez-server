@@ -8,7 +8,5 @@ def update_admin_user(user_id: str, data: Dict[str, Any]) -> User:
     user = User.objects.get(pk=user_id)
     if "role" in data:
         user.role = data["role"]
-    if "is_active" in data:
-        user.is_active = data["is_active"]
-    user.save(update_fields=["role", "is_active", "updated_at"])
+    user.save(update_fields=["role", "updated_at"])
     return user

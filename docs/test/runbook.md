@@ -8,6 +8,8 @@
   - `cd api && python3 -m pytest -q`
 - 収穫登録（タブレット）システムテストだけ実行：
   - `cd api && python3 -m pytest -q -k system_tablet_harvest_register`
+- 不良品登録（タブレット）システムテストだけ実行：
+  - `cd api && python3 -m pytest -q -k system_defects_register`
 
 ## ローカル（nox）
 - 前提：`nox` がインストール済み

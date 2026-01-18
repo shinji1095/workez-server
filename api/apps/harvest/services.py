@@ -80,7 +80,7 @@ def add_record(
     rank: Optional[Rank] = None,
     rank_id: Optional[str] = None,
     count: Optional[int] = None,
-    occurred_at: Optional[datetime] = None,
+    harvested_at: Optional[datetime] = None,
 ) -> HarvestRecord:
     """Create a HarvestRecord.
 
@@ -99,7 +99,7 @@ def add_record(
         rank = data.get("rank")
         rank_id = data.get("rank_id")
         count = data.get("count")
-        occurred_at = data.get("occurred_at")
+        harvested_at = data.get("harvested_at")
 
     if event_id is None:
         raise ValidationError({"event_id": "required"})
@@ -111,8 +111,6 @@ def add_record(
         raise ValidationError({"rank_id": "required"})
     if count is None:
         raise ValidationError({"count": "required"})
-    if occurred_at is None:
-        raise ValidationError({"occurred_at": "required"})
 
     # type strictness is handled in serializers for API requests.
     if not isinstance(count, int) or isinstance(count, bool):
@@ -120,19 +118,22 @@ def add_record(
     if count <= 0:
         raise ValidationError({"count": "must be >= 1"})
 
-    if isinstance(occurred_at, str):
+    if harvested_at is None:
+        harvested_at = timezone.now()
+
+    if isinstance(harvested_at, str):
         # allow ISO strings in service layer for tests/tools
         from django.utils.dateparse import parse_datetime
 
-        parsed = parse_datetime(occurred_at)
+        parsed = parse_datetime(harvested_at)
         if parsed is None:
-            raise ValidationError({"occurred_at": "invalid datetime"})
-        occurred_at = parsed
+            raise ValidationError({"harvested_at": "invalid datetime"})
+        harvested_at = parsed
 
-    if not isinstance(occurred_at, datetime):
-        raise ValidationError({"occurred_at": "invalid datetime"})
+    if not isinstance(harvested_at, datetime):
+        raise ValidationError({"harvested_at": "invalid datetime"})
 
-    occurred_at = _normalize_occurred_at(occurred_at)
+    harvested_at = _normalize_occurred_at(harvested_at)
 
     if size is None:
         size = Size.objects.filter(size_id=size_id).first()
@@ -154,7 +155,7 @@ def add_record(
         size=size,
         rank=rank,
         count=count,
-        occurred_at=occurred_at,
+        harvested_at=harvested_at,
     )
 
 
@@ -163,7 +164,7 @@ def _bucket_records(
     *,
     size_id: Optional[str] = None,
 ) -> Dict[Tuple[str, str], Dict[str, Any]]:
-    qs = HarvestRecord.objects.all().only("occurred_at", "size", "count")
+    qs = HarvestRecord.objects.all().only("harvested_at", "size", "count")
     size: Optional[Size] = None
     if size_id is not None:
         size = _require_defined_size(size_id)
@@ -172,7 +173,7 @@ def _bucket_records(
     bucket: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
     for rec in qs.iterator():
-        period = _period_of(rec.occurred_at, period_type)
+        period = _period_of(rec.harvested_at, period_type)
         key = (period, rec.size_id)
         if key not in bucket:
             bucket[key] = {
@@ -201,10 +202,10 @@ def _bucket_records(
 
 
 def list_aggregate_total(period_type: str) -> List[Dict[str, Any]]:
-    qs = HarvestRecord.objects.all().only("occurred_at", "count")
+    qs = HarvestRecord.objects.all().only("harvested_at", "count")
     bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
-        period = _period_of(rec.occurred_at, period_type)
+        period = _period_of(rec.harvested_at, period_type)
         bucket[period] += _to_decimal(rec.count)
 
     items = [{"period": period, "total_count": total} for period, total in bucket.items()]
@@ -221,10 +222,10 @@ def list_aggregate_by_size(period_type: str, size_id: str) -> List[Dict[str, Any
 def list_aggregate_by_lot(period_type: str, lot_name: str) -> List[Dict[str, Any]]:
     if not lot_name:
         raise ValidationError({"lot_name": "required"})
-    qs = HarvestRecord.objects.filter(lot_name=lot_name).only("occurred_at", "count")
+    qs = HarvestRecord.objects.filter(lot_name=lot_name).only("harvested_at", "count")
     bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
-        period = _period_of(rec.occurred_at, period_type)
+        period = _period_of(rec.harvested_at, period_type)
         bucket[period] += _to_decimal(rec.count)
 
     items = [
@@ -241,10 +242,10 @@ def list_aggregate_by_lot(period_type: str, lot_name: str) -> List[Dict[str, Any
 
 def list_aggregate_by_rank(period_type: str, rank_id: str) -> List[Dict[str, Any]]:
     rank = _require_defined_rank(rank_id)
-    qs = HarvestRecord.objects.filter(rank_id=rank_id).only("occurred_at", "rank", "count")
+    qs = HarvestRecord.objects.filter(rank_id=rank_id).only("harvested_at", "rank", "count")
     bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
-        period = _period_of(rec.occurred_at, period_type)
+        period = _period_of(rec.harvested_at, period_type)
         bucket[period] += _to_decimal(rec.count)
 
     items = [
@@ -263,10 +264,10 @@ def list_aggregate_by_rank(period_type: str, rank_id: str) -> List[Dict[str, Any
 def list_aggregate_by_size_rank(period_type: str, size_id: str, rank_id: str) -> List[Dict[str, Any]]:
     size = _require_defined_size(size_id)
     rank = _require_defined_rank(rank_id)
-    qs = HarvestRecord.objects.filter(size_id=size_id, rank_id=rank_id).only("occurred_at", "size", "rank", "count")
+    qs = HarvestRecord.objects.filter(size_id=size_id, rank_id=rank_id).only("harvested_at", "size", "rank", "count")
     bucket: Dict[str, Decimal] = defaultdict(Decimal)
     for rec in qs.iterator():
-        period = _period_of(rec.occurred_at, period_type)
+        period = _period_of(rec.harvested_at, period_type)
         bucket[period] += _to_decimal(rec.count)
 
     items = [

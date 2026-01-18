@@ -17,7 +17,7 @@
   - APIハンドラ + DB を含めた結合検証。
   - OpenAPIで定義したステータスコードと共通エラー形式（ErrorResponse）を中心に検証。
 - System（システム：UI→API→DB）
-  - UI起点のユーザーフローを、APIとDBまで含めて検証する（例：`harvest_register.html` → `POST /tablet/harvest/{date}` → `harvest_records`）。
+  - UI起点のユーザーフローを、APIとDBまで含めて検証する（例：`harvest_register.html` → `POST /tablet/harvest/{date}` → `harvest_records`、`defects_register.html` → `POST /defects/amount/add` → `defects_records`）。
   - ブラウザ操作が必要なケースは将来E2E（ブラウザ）へ拡張し、当面は「UIが送るリクエスト形式」を再現して検証する。
 - E2E(curl)
   - 実行環境に対してcurl等でHTTPリクエストを投げ、仕様に沿ったレスポンスを確認。

@@ -99,8 +99,8 @@ def _filter_harvest_records(
     rank_id: str | None,
 ):
     qs = HarvestRecord.objects.filter(
-        occurred_at__date__gte=start_date,
-        occurred_at__date__lte=end_date,
+        harvested_at__date__gte=start_date,
+        harvested_at__date__lte=end_date,
     ).select_related("size", "rank")
     if lot_name:
         qs = qs.filter(lot_name=lot_name)
@@ -118,7 +118,7 @@ def _summarize_records_daily(qs) -> tuple[list[dict], int, Decimal]:
     for rec in qs.iterator():
         record_count += 1
         total_count += Decimal(rec.count)
-        period = timezone.localtime(rec.occurred_at).date().isoformat()
+        period = timezone.localtime(rec.harvested_at).date().isoformat()
         bucket[period] += Decimal(rec.count)
     items = [{"period": key, "total_count": bucket[key]} for key in sorted(bucket.keys())]
     return items, record_count, total_count
@@ -305,9 +305,9 @@ class TabletHarvestView(APIView):
                 lot_name=lot,
                 size=size,
                 rank=rank,
-                occurred_at__date=d,
+                harvested_at__date=d,
             )
-            .order_by("-created_at")
+            .order_by("-harvested_at")
             .first()
         )
 
@@ -336,7 +336,7 @@ class TabletHarvestView(APIView):
             raise ValidationError({"count": "must be >= 0"})
 
         size, rank = self._require_size_rank(size_id, rank_id)
-        occurred_at = timezone.make_aware(
+        harvested_at = timezone.make_aware(
             datetime.combine(d, time.min),
             timezone.get_current_timezone(),
         )
@@ -344,8 +344,8 @@ class TabletHarvestView(APIView):
         existing = self._lookup(d, lot, size, rank)
         if existing:
             existing.count = count
-            existing.occurred_at = occurred_at
-            existing.save(update_fields=["count", "occurred_at"])
+            existing.harvested_at = harvested_at
+            existing.save(update_fields=["count", "harvested_at"])
             rec = existing
             http_status = status.HTTP_200_OK
         else:
@@ -355,7 +355,7 @@ class TabletHarvestView(APIView):
                 size=size,
                 rank=rank,
                 count=count,
-                occurred_at=occurred_at,
+                harvested_at=harvested_at,
             )
             http_status = status.HTTP_201_CREATED
 
@@ -403,11 +403,13 @@ class TabletHarvestView(APIView):
             "size": "size__size_id",
             "rank": "rank__rank_id",
             "count": "count",
-            "occurred_at": "occurred_at",
-            "created_at": "created_at",
+            "harvested_at": "harvested_at",
+            # backward-compatible aliases
+            "occurred_at": "harvested_at",
+            "created_at": "harvested_at",
         }
 
-        qs = HarvestRecord.objects.filter(event_id__isnull=True, occurred_at__date=d).select_related("size", "rank")
+        qs = HarvestRecord.objects.filter(event_id__isnull=True, harvested_at__date=d).select_related("size", "rank")
         if lot:
             qs = qs.filter(lot_name=lot)
         if size_id:
@@ -451,7 +453,7 @@ class TabletHarvestView(APIView):
 
             raw_date = request.data.get("date")
             if raw_date is None or (isinstance(raw_date, str) and not raw_date.strip()):
-                new_date = rec.occurred_at.astimezone(timezone.get_current_timezone()).date()
+                new_date = rec.harvested_at.astimezone(timezone.get_current_timezone()).date()
             else:
                 try:
                     new_date = _parse_path_date(str(raw_date).strip())
@@ -483,7 +485,7 @@ class TabletHarvestView(APIView):
                 raise ValidationError({"count": "must be >= 0"})
 
             size, rank = self._require_size_rank(new_size_id, new_rank_id)
-            occurred_at = timezone.make_aware(
+            harvested_at = timezone.make_aware(
                 datetime.combine(new_date, time.min),
                 timezone.get_current_timezone(),
             )
@@ -494,17 +496,17 @@ class TabletHarvestView(APIView):
                     lot_name=new_lot,
                     size=size,
                     rank=rank,
-                    occurred_at__date=new_date,
+                    harvested_at__date=new_date,
                 )
                 .exclude(id=rec.id)
-                .order_by("-created_at")
+                .order_by("-harvested_at")
                 .first()
             )
 
             if conflict:
                 conflict.count = count
-                conflict.occurred_at = occurred_at
-                conflict.save(update_fields=["count", "occurred_at"])
+                conflict.harvested_at = harvested_at
+                conflict.save(update_fields=["count", "harvested_at"])
                 rec.delete()
                 rec = conflict
             else:
@@ -512,8 +514,8 @@ class TabletHarvestView(APIView):
                 rec.size = size
                 rec.rank = rank
                 rec.count = count
-                rec.occurred_at = occurred_at
-                rec.save(update_fields=["lot_name", "size", "rank", "count", "occurred_at"])
+                rec.harvested_at = harvested_at
+                rec.save(update_fields=["lot_name", "size", "rank", "count", "harvested_at"])
 
             return Response(success_response(request, HarvestRecordSerializer(rec).data), status=status.HTTP_200_OK)
 
@@ -535,13 +537,13 @@ class TabletHarvestView(APIView):
 
             raise NotFound()
 
-        occurred_at = timezone.make_aware(
+        harvested_at = timezone.make_aware(
             datetime.combine(d, time.min),
             timezone.get_current_timezone(),
         )
         rec.count = count
-        rec.occurred_at = occurred_at
-        rec.save(update_fields=["count", "occurred_at"])
+        rec.harvested_at = harvested_at
+        rec.save(update_fields=["count", "harvested_at"])
 
         out = {
             "date": d.isoformat(),
@@ -879,7 +881,7 @@ class ExportHarvestRecordsCsvView(APIView):
             lot_name=lot_name,
             size_id=size_id,
             rank_id=rank_id,
-        ).order_by("occurred_at", "id")
+        ).order_by("harvested_at", "id")
 
         output = StringIO(newline="")
         writer = csv.writer(output)
@@ -891,8 +893,7 @@ class ExportHarvestRecordsCsvView(APIView):
                 "size_id",
                 "rank_id",
                 "count",
-                "occurred_at",
-                "created_at",
+                "harvested_at",
             ]
         )
 
@@ -905,8 +906,7 @@ class ExportHarvestRecordsCsvView(APIView):
                     rec.size_id,
                     rec.rank_id,
                     _format_count(Decimal(rec.count)),
-                    timezone.localtime(rec.occurred_at).isoformat(),
-                    timezone.localtime(rec.created_at).isoformat(),
+                    timezone.localtime(rec.harvested_at).isoformat(),
                 ]
             )
 
@@ -941,7 +941,7 @@ class ExportHarvestReportPdfView(APIView):
             lot_name=lot_name,
             size_id=size_id,
             rank_id=rank_id,
-        ).order_by("occurred_at", "id")
+        ).order_by("harvested_at", "id")
 
         items, record_count, total_count = _summarize_records_daily(qs)
         pdf_bytes = _render_harvest_pdf(

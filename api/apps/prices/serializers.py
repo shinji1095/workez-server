@@ -7,7 +7,7 @@ class PriceRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PriceRecord
-        fields = ["size_id", "rank_id", "unit_price_yen", "effective_from", "effective_to", "updated_at"]
+        fields = ["size_id", "rank_id", "year", "month", "unit_price_yen", "updated_at"]
 
 class UpsertPricesSizeRankRequestSerializer(serializers.Serializer):
     year = serializers.IntegerField(min_value=2000, max_value=2100)

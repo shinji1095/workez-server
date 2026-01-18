@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from rest_framework import serializers  # type: ignore
 
-from apps.common.strict_fields import StrictDateTimeField, StrictPositiveIntField, StrictUUIDField
+from apps.common.strict_fields import StrictPositiveIntField, StrictUUIDField
 
 from .models import HarvestAggregateOverride, HarvestRecord, Rank, Size
 
@@ -13,7 +13,6 @@ class CreateHarvestAmountAddRequestSerializer(serializers.Serializer):
     size_id = serializers.SlugRelatedField(source="size", slug_field="size_id", queryset=Size.objects.all())
     rank_id = serializers.SlugRelatedField(source="rank", slug_field="rank_id", queryset=Rank.objects.all())
     count = StrictPositiveIntField()
-    occurred_at = StrictDateTimeField()
 
 
 class HarvestRecordSerializer(serializers.ModelSerializer):
@@ -30,8 +29,7 @@ class HarvestRecordSerializer(serializers.ModelSerializer):
             "size_id",
             "rank_id",
             "count",
-            "occurred_at",
-            "created_at",
+            "harvested_at",
         )
 
 

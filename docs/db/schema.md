@@ -5,8 +5,10 @@
 - 本資料は以下の変更を反映する：
   - `harvest_records` から `category_id` / `category_name` を削除し、`size_id` / `rank_id` / `lot_name` を追加
   - `harvest_records.count` を小数（0.1刻み）に対応するため `decimal(10,1)` 相当に変更
+  - `harvest_records` の日時は `harvested_at` のみに統一（`occurred_at` を削除、`created_at` を `harvested_at` にリネーム）
   - `harvest_aggregate_overrides` の `category_id` / `category_name` を `size_id` / `size_name` に変更
-  - `price_records` から `category_id` / `category_name` を削除し、`size_id` / `rank_id` を追加
+  - `defects_records` から `category_id` / `occurred_at` を削除し、`count` を `decimal(10,1)` 相当に変更
+  - `price_records` から `category_id` / `category_name` を削除し、`size_id` / `rank_id` / `year` / `month` を追加
   - `sizes` / `ranks` テーブルを追加（初期レコードあり）
 
 ## 2. DBエンジン（環境差分）
@@ -28,14 +30,13 @@ erDiagram
 
 ## 4. テーブル定義
 
-### `app_users`（`apps.users.User`）
+### `users`（`apps.users.User`）
 | カラム | 型（概念） | NULL | 制約/補足 |
 |---|---|---:|---|
 | `id` | uuid | NO | PK |
 | `email` | varchar(254) | NO | UNIQUE |
 | `name` | varchar(255) | NO |  |
 | `role` | varchar(20) | NO | default=`user`（`admin`/`user`） |
-| `is_active` | boolean | NO | default=`true` |
 | `created_at` | datetime | NO | 自動設定（作成時） |
 | `updated_at` | datetime | NO | 自動更新 |
 
@@ -48,8 +49,7 @@ erDiagram
 | `size_id` | varchar(64) | NO | FK → `sizes.size_id` |
 | `rank_id` | varchar(64) | NO | FK → `ranks.rank_id` |
 | `count` | decimal(10,1) | NO | 収穫量（0.1刻み） |
-| `occurred_at` | datetime | NO |  |
-| `created_at` | datetime | NO | 自動設定（作成時） |
+| `harvested_at` | datetime | NO | 収穫日時 |
 
 ### `harvest_aggregate_overrides`（`apps.harvest.HarvestAggregateOverride`）
 | カラム | 型（概念） | NULL | 制約/補足 |
@@ -78,9 +78,7 @@ erDiagram
 |---|---|---:|---|
 | `id` | uuid | NO | PK |
 | `event_id` | uuid | YES | UNIQUE（冪等キー用途） |
-| `category_id` | varchar(64) | YES |  |
-| `count` | int | NO |  |
-| `occurred_at` | datetime | NO |  |
+| `count` | decimal(10,1) | NO | 不良品数（0.1刻み） |
 | `created_at` | datetime | NO | 自動設定（作成時） |
 
 ### `price_records`（`apps.prices.PriceRecord`）
@@ -90,12 +88,12 @@ erDiagram
 | `size_id` | varchar(64) | NO | FK → `sizes.size_id` |
 | `rank_id` | varchar(64) | NO | FK → `ranks.rank_id` |
 | `unit_price_yen` | int | NO |  |
-| `effective_from` | date | NO |  |
-| `effective_to` | date | YES |  |
+| `year` | int | NO |  |
+| `month` | int | NO |  |
 | `updated_at` | datetime | NO | 自動更新 |
 
 制約：
-- UNIQUE（`size_id`, `rank_id`, `effective_from`）
+- UNIQUE（`size_id`, `rank_id`, `year`, `month`）
 
 ### `sizes`（マスタ：サイズ）
 | カラム | 型（概念） | NULL | 制約/補足 |

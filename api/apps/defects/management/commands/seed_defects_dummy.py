@@ -4,46 +4,17 @@ import random
 import uuid
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
-from typing import Dict, List, Sequence
+from typing import List
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from apps.harvest.models import HarvestRecord, Rank, Size
+from apps.defects.models import DefectsRecord
 
-DEFAULT_EVENT_ID_PREFIX = "d00d5eed"
-DEFAULT_LOT_NAMES = ("1a", "1b", "2e")
-DEFAULT_SIZE_IDS = ("L", "M", "S")
-DEFAULT_RANK_IDS = ("A", "B")
+DEFAULT_EVENT_ID_PREFIX = "defec7"
 DEFAULT_MIN_COUNT = Decimal("0.1")
-DEFAULT_MAX_COUNT = Decimal("5")
+DEFAULT_MAX_COUNT = Decimal("3.0")
 COUNT_STEP = Decimal("0.1")
-
-
-def _parse_csv(value: str) -> List[str]:
-    return [item.strip() for item in value.split(",") if item.strip()]
-
-
-def _ensure_sizes(size_ids: Sequence[str]) -> Dict[str, Size]:
-    sizes: Dict[str, Size] = {}
-    for size_id in size_ids:
-        size, _ = Size.objects.get_or_create(
-            size_id=size_id,
-            defaults={"size_name": size_id},
-        )
-        sizes[size_id] = size
-    return sizes
-
-
-def _ensure_ranks(rank_ids: Sequence[str]) -> Dict[str, Rank]:
-    ranks: Dict[str, Rank] = {}
-    for rank_id in rank_ids:
-        rank, _ = Rank.objects.get_or_create(
-            rank_id=rank_id,
-            defaults={"rank_name": rank_id},
-        )
-        ranks[rank_id] = rank
-    return ranks
 
 
 def _normalize_event_id_prefix(prefix: str) -> str:
@@ -76,7 +47,7 @@ def _parse_count(value: str, name: str) -> Decimal:
 
 
 class Command(BaseCommand):
-    help = "Insert dummy harvest records."
+    help = "Insert dummy defects records."
 
     def add_arguments(self, parser) -> None:
         parser.add_argument(
@@ -95,21 +66,6 @@ class Command(BaseCommand):
             "--start-date",
             default="",
             help="Start date in YYYY-MM-DD. Defaults to today (local time).",
-        )
-        parser.add_argument(
-            "--lot-names",
-            default=",".join(DEFAULT_LOT_NAMES),
-            help="Comma-separated lot names to use.",
-        )
-        parser.add_argument(
-            "--size-ids",
-            default=",".join(DEFAULT_SIZE_IDS),
-            help="Comma-separated size IDs to use.",
-        )
-        parser.add_argument(
-            "--rank-ids",
-            default=",".join(DEFAULT_RANK_IDS),
-            help="Comma-separated rank IDs to use.",
         )
         parser.add_argument(
             "--event-id-prefix",
@@ -147,7 +103,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options) -> None:
         days = options["days"]
         per_day = options["per_day"]
-        lot_names = _parse_csv(options["lot_names"])
         min_count = _parse_count(options["min_count"], "--min-count")
         max_count = _parse_count(options["max_count"], "--max-count")
         seed = options["seed"]
@@ -159,21 +114,12 @@ class Command(BaseCommand):
             raise CommandError("--days must be >= 1")
         if per_day <= 0:
             raise CommandError("--per-day must be >= 1")
-        if not lot_names:
-            raise CommandError("--lot-names must not be empty")
         if max_count < min_count:
             raise CommandError("--max-count must be >= --min-count")
         min_units = int((min_count / COUNT_STEP).to_integral_value())
         max_units = int((max_count / COUNT_STEP).to_integral_value())
         if batch_size <= 0:
             raise CommandError("--batch-size must be >= 1")
-
-        size_ids = _parse_csv(options["size_ids"])
-        rank_ids = _parse_csv(options["rank_ids"])
-        if not size_ids:
-            raise CommandError("--size-ids must not be empty")
-        if not rank_ids:
-            raise CommandError("--rank-ids must not be empty")
 
         start_date_str = options["start_date"]
         if start_date_str:
@@ -184,29 +130,23 @@ class Command(BaseCommand):
         else:
             start_date = timezone.localdate()
 
-        sizes = _ensure_sizes(size_ids)
-        ranks = _ensure_ranks(rank_ids)
-
         rng = random.Random(seed)
         tz = timezone.get_current_timezone()
 
-        records: List[HarvestRecord] = []
+        records: List[DefectsRecord] = []
         event_ids: List[uuid.UUID] = []
         seen_event_ids: set[uuid.UUID] = set()
 
         for day_offset in range(days):
             day = start_date - timedelta(days=day_offset)
-            for idx in range(per_day):
-                size_id = rng.choice(size_ids)
-                rank_id = rng.choice(rank_ids)
-                lot_name = rng.choice(lot_names)
+            for _ in range(per_day):
                 count_units = rng.randint(min_units, max_units)
                 count = (Decimal(count_units) * COUNT_STEP).quantize(COUNT_STEP)
-                hour = rng.randint(6, 18)
+                hour = rng.randint(6, 20)
                 minute = rng.randint(0, 59)
                 second = rng.randint(0, 59)
-                harvested_at = datetime.combine(day, time(hour=hour, minute=minute, second=second))
-                harvested_at = timezone.make_aware(harvested_at, tz)
+                created_at = datetime.combine(day, time(hour=hour, minute=minute, second=second))
+                created_at = timezone.make_aware(created_at, tz)
                 event_id = _random_uuid_with_prefix(rng, event_id_prefix)
                 while event_id in seen_event_ids:
                     event_id = _random_uuid_with_prefix(rng, event_id_prefix)
@@ -214,18 +154,15 @@ class Command(BaseCommand):
 
                 event_ids.append(event_id)
                 records.append(
-                    HarvestRecord(
+                    DefectsRecord(
                         event_id=event_id,
-                        lot_name=lot_name,
-                        size=sizes[size_id],
-                        rank=ranks[rank_id],
                         count=count,
-                        harvested_at=harvested_at,
+                        created_at=created_at,
                     )
                 )
 
         existing = set(
-            HarvestRecord.objects.filter(event_id__in=event_ids).values_list("event_id", flat=True)
+            DefectsRecord.objects.filter(event_id__in=event_ids).values_list("event_id", flat=True)
         )
         if existing:
             records = [record for record in records if record.event_id not in existing]
@@ -242,9 +179,9 @@ class Command(BaseCommand):
             return
 
         if to_create:
-            HarvestRecord.objects.bulk_create(records, batch_size=batch_size)
+            DefectsRecord.objects.bulk_create(records, batch_size=batch_size)
 
-        self.stdout.write(self.style.SUCCESS(f"Inserted {to_create} harvest records."))
+        self.stdout.write(self.style.SUCCESS(f"Inserted {to_create} defects records."))
         if skipped:
             self.stdout.write(self.style.WARNING(f"Skipped {skipped} existing records."))
         self.stdout.write(
@@ -256,3 +193,4 @@ class Command(BaseCommand):
                 seed,
             )
         )
+

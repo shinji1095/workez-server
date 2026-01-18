@@ -6,11 +6,11 @@ class PriceRecord(models.Model):
     size = models.ForeignKey("harvest_api.Size", on_delete=models.PROTECT)
     rank = models.ForeignKey("harvest_api.Rank", on_delete=models.PROTECT)
     unit_price_yen = models.IntegerField()
-    effective_from = models.DateField()
-    effective_to = models.DateField(null=True, blank=True)
+    year = models.PositiveSmallIntegerField()
+    month = models.PositiveSmallIntegerField()
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "price_records"
-        ordering = ["-effective_from"]
-        unique_together = ("size", "rank", "effective_from")
+        ordering = ["-year", "-month"]
+        unique_together = ("size", "rank", "year", "month")
