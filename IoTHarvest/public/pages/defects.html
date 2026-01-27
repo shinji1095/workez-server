@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <title>IoT収穫管理</title>
+  <link rel="stylesheet" href="../css/style.css" />  
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <a href="index">
+        <img src="../css/logo.png" alt="logo" width="25%" onclick="">
+      </a>
+    </div>
+    <div class="top-actions">
+      <button>プロフィール</button>
+      <button>ログアウト</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="index" class="nav-btn">ダッシュボード</a>
+      <a href="harvest" class="nav-btn">収穫量推移</a>
+      <a href="revenue" class="nav-btn">収益</a>
+      <a href="defects" class="nav-btn active">不良品</a>
+      <a href="users" class="nav-btn">ユーザー</a>
+      <a href="targets" class="nav-btn">ターゲット</a>
+      <a href="analytics" class="nav-btn">分析</a>
+    </aside>
+
+  <main class="content">
+    <h1>不良品</h1>
+
+      <!-- Period Selector -->
+      <div class="period">
+  <button onclick="loadDefects('weekly')" class="active">	週間不良品数</button>
+  <button onclick="loadDefects('monthly')">月間不良品数</button>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3>不良品数</h3>
+    <canvas id="defectCountChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>不良率（％）</h3>
+    <canvas id="defectRatioChart"></canvas>
+  </div>
+</div>
+
+<script src="/js/defects.js"></script>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <title>IoT収穫管理</title>
+  <link rel="stylesheet" href="../css/style.css" />  
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <a href="index">
+        <img src="../css/logo.png" alt="logo" width="25%" onclick="">
+      </a>
+    </div>
+    <div class="top-actions">
+      <button>プロフィール</button>
+      <button>ログアウト</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="index" class="nav-btn active">ダッシュボード</a>
+      <a href="harvest" class="nav-btn">収穫量推移</a>
+      <a href="revenue" class="nav-btn">収益</a>
+      <a href="defects" class="nav-btn">不良品</a>
+      <a href="users" class="nav-btn">ユーザー</a>
+      <a href="targets" class="nav-btn">ターゲット</a>
+      <a href="analytics" class="nav-btn">分析</a>
+    </aside>
+
+  <main class="content">
+    <h1>ダッシュボード</h1>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">今日の収穫</div>
+        <div class="card-value"><p id="today_har">Kg</p></div>
+      </div>
+      <div class="card">
+        <div class="card-label">今週の不良品</div>
+        <div class="card-value"><p id="weekly_defects">Kg</p>
+        </div>
+      </div>
+
+    </div>
+    <section class="grid-2">
+    <div class="card">
+        <h3>収穫の概要</h3>
+        <canvas id="harvestChart">
+    </div>
+      <div class="card">
+    <!-- Revenue Card -->
+<div class="card">
+  <h3>収益概要</h3>
+
+  <div id="revenueWrapper" class="confidential-wrapper">
+    <canvas id="revenueChart"></canvas>
+    <!-- Clickable overlay -->
+    <div
+      id="confidentialOverlay"
+      class="confidential-overlay hidden"
+      onclick="openAdminModal(event)"
+    >
+      機密
+    </div>
+
+    <!-- Card-scoped modal -->
+    <div id="adminModal" class="card-modal hidden">
+      <div class="card-modal-content">
+        <h4>管理者アクセスが必要です</h4>
+        <p>収益分析を表示するには、管理者アカウントに切り替えてください。</p>
+        <button onclick="closeAdminModal(event)">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+    </section>  
+    </div>
+  </main>
+</div>
+
+<script src="/js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+/*
+rank wise split or size wise split
+pdf or excel
+timeline
+pop up profile - name​
+
+email​
+
+role
+*/
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f4f4f4;
+}
+
+/* Top Bar */
+.topbar {
+  height: 50px;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.logo {
+  background: #bbb;
+  padding: 5px 20px;
+}
+
+.top-actions button {
+  margin-left: 10px;
+}
+
+/* Layout */
+.layout {
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background: #eee;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar button {
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #aaa;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.sidebar button.active {
+  background: #d0d0d0;
+  font-weight: bold;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 50px);
+}
+
+/* Period */
+.period button {
+  margin-left: 10px;
+}
+
+.period button.active {
+  background: #ccc;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border: 1px solid #aaa;
+  padding: 15px;
+  margin-top: 20px;
+  width: 100%;
+  height: auto;
+}
+
+
+.chart-placeholder {
+  height: 200px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+/* Category */
+.category {
+  margin-top: 20px;
+}
+
+.category button {
+  margin-left: 10px;
+}
+
+.category button.active {
+  background: #ccc;
+}
+
+.note {
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+}
+
+/* Bottom grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+a{
+  color: black;
+  text-decoration: none;
+  
+}
+
+a.visited {
+  color: black;
+}
+
+.nav-btn {
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  color: inherit;
+  background: none;
+  border: none;
+}
+
+.nav-btn.active {
+  font-weight: bold;
+}
+
+
+/* Wrapper positioning */
+.confidential-wrapper {
+  position: relative;
+}
+
+/* Blur ONLY chart */
+.confidential-wrapper.blurred canvas {
+  filter: blur(6px);
+}
+
+/* Overlay */
+.confidential-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Card-scoped modal */
+.card-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+/* Modal box */
+.card-modal-content {
+  background: white;
+  padding: 16px;
+  border-radius: 6px;
+  width: 80%;
+  max-width: 320px;
+  text-align: center;
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+.blocked {
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Full-screen overlay */
+.access-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.35);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.access-popup {
+  background: #fff;
+  padding: 24px 32px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.click-hint {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.data-table th {
+  background: #f5f5f5;
+}

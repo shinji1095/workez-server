@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <title>IoT収穫管理</title>
+  <link rel="stylesheet" href="../css/style.css" />  
+</head>
+<body>
+    <!-- Top Bar -->
+  <header class="topbar">
+    <div>
+      <a href="index">
+        <img src="../css/logo.png" alt="logo" width="25%" onclick="">
+      </a>
+    </div>
+    <div class="top-actions">
+      <button>プロフィール</button>
+      <button>ログアウト</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="index" class="nav-btn">ダッシュボード</a>
+      <a href="harvest" class="nav-btn">収穫量推移</a>
+      <a href="revenue" class="nav-btn">収益</a>
+      <a href="defects" class="nav-btn">不良品</a>
+      <a href="users" class="nav-btn">ユーザー</a>
+      <a href="targets" class="nav-btn">ターゲット</a>
+      <a href="analytics" class="nav-btn active">分析</a>
+    </aside>
+
+<main class="content">
+<h1>高度な分析</h1>
+<section class="card">
+  <h3>収穫レコード出力</h3>
+
+  <div class="export-filters">
+    <div>
+      <label>開始日</label>
+      <input type="date" id="startDate">
+    </div>
+
+    <div>
+      <label>終了日</label>
+      <input type="date" id="endDate">
+    </div>
+
+    <div>
+      <label>ロット</label>
+      <input type="text" id="lotName" placeholder="例: 1a">
+    </div>
+
+    <div>
+      <label>サイズ</label>
+      <select id="sizeId">
+        <option value="">全て</option>
+        <option value="L">L</option>
+        <option value="M">M</option>
+        <option value="S">S</option>
+        <option value="SS">SS</option>
+        <option value="3S">3S</option>
+        <option value="小">小</option>
+      </select>
+    </div>
+
+    <div>
+      <label>ランク</label>
+      <select id="rankId">
+        <option value="">全て</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="廃棄">廃棄</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="export-actions">
+    <button onclick="exportCSV()">CSV 出力</button>
+    <button onclick="exportPDF()">PDF 出力</button>
+  </div>
+</section>
+
+
+<div class="panel">
+  <h3>収穫予測</h3>
+  <canvas id="harvestPredictionChart"></canvas>
+</div>
+  </main>
+</div>
+<script src="/js/analytics.js"></script>
+</body>
+</html>
